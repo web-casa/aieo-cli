@@ -43,7 +43,7 @@ inputs:
     description: "Upload the evidence bundle to aieo.ee (needs aieo-api-key and [aieo] project in aieo.toml)"
     default: "false"
   aieo-api-key:
-    description: aieo.ee API key with write access — pass a secret, e.g. ${{ secrets.AIEO_API_KEY }}
+    description: "aieo.ee API key with write access; pass a repository secret (e.g. AIEO_API_KEY), never a literal"
     default: ""
   indexnow:
     description: "Submit the pages changed since the baseline to IndexNow (needs [indexnow] key in aieo.toml and the key file deployed); typically only on the default branch after deploying"
