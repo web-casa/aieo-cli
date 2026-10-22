@@ -310,13 +310,18 @@ pub fn check(site: &Site, opts: &Options) -> Outcome {
         for f in &mut findings {
             f.status = if before.contains(f.fingerprint.as_str()) {
                 FindingStatus::Existing
-            } else if !spec().rule_existed_in(&f.rule, baseline_rules) {
-                // the rule came with an aieo upgrade: not a change of the
-                // site, so not "new" until the next snapshot
+            } else if !spec().rule_unchanged_since(&f.rule, baseline_rules) {
+                // the rule came, or got stricter, with an aieo upgrade: not a
+                // change of the site, so not "new" until the next snapshot
+                let what = if spec().rule_existed_in(&f.rule, baseline_rules) {
+                    "rule widened"
+                } else {
+                    "rule added"
+                };
                 f.evidence.push(aieo_core::Evidence::new(
                     aieo_core::Localized::new("Baseline", "基线"),
                     format!(
-                        "rule added after the baseline's rules {baseline_rules}; not counted as new until the next `aieo snapshot`"
+                        "{what} after the baseline's rules {baseline_rules}; not counted as new until the next `aieo snapshot`"
                     ),
                 ));
                 FindingStatus::Unknown

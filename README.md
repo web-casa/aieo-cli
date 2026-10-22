@@ -307,9 +307,10 @@ land on the setting to change.
 Rules come from [`@aieo/rules`](spec/SOURCE.json) (embedded in the binary):
 a patch release changes wording or fixes a false positive, a minor release
 adds rules, a major release changes what an existing rule means. Rule ids
-are never reused. A finding from a rule added after the baseline was taken
-is reported as `unknown`, not `new`, so upgrading `aieo` alone never fails
-`aieo diff`; take a new snapshot to adopt it.
+are never reused. A finding from a rule added — or widened, see `changed`
+in [`spec/rules-history.json`](spec/rules-history.json) — after the
+baseline was taken is reported as `unknown`, not `new`, so upgrading `aieo`
+alone never fails `aieo diff`; take a new snapshot to adopt it.
 
 ## Development
 

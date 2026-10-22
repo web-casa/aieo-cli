@@ -419,7 +419,7 @@ fn an_upgrade_alone_never_fails_a_diff() {
     let later: Vec<_> = o
         .findings
         .iter()
-        .filter(|f| !spec().rule_existed_in(&f.rule, "2.0.0"))
+        .filter(|f| !spec().rule_unchanged_since(&f.rule, "2.0.0"))
         .collect();
     assert!(
         !later.is_empty(),
@@ -430,7 +430,7 @@ fn an_upgrade_alone_never_fails_a_diff() {
         assert!(f
             .evidence
             .iter()
-            .any(|e| e.detail.contains("added after the baseline")));
+            .any(|e| e.detail.contains("after the baseline's rules")));
     }
     let only_later: Vec<_> = later.into_iter().cloned().collect();
     let gate = aieo_core::config::parse_fail_on(&["new:notice".into()]).unwrap();
@@ -441,7 +441,50 @@ fn an_upgrade_alone_never_fails_a_diff() {
     assert!(o
         .findings
         .iter()
-        .any(|f| f.status == FindingStatus::New && spec().rule_existed_in(&f.rule, "2.0.0")));
+        .any(|f| f.status == FindingStatus::New && spec().rule_unchanged_since(&f.rule, "2.0.0")));
+
+    // a rule widened after the baseline (3.0.0: ISO hreflang codes) is not new either
+    let files = vec![(
+        "index.html",
+        page(
+            "en",
+            "Home",
+            &format!("{O}/"),
+            &format!(r#"<link rel="alternate" hreflang="en-UK" href="{O}/">"#),
+            "",
+        ),
+    )];
+    let (_d, site) = build(&files);
+    let mut baseline = baseline_from(&check(
+        &site,
+        &Options {
+            settings: &s,
+            project: None,
+            rendering: None,
+            baseline: None,
+        },
+    ));
+    baseline.findings.clear();
+    baseline.producer.rules_version = "2.4.1".into();
+    let o = check(
+        &site,
+        &Options {
+            settings: &s,
+            project: None,
+            rendering: None,
+            baseline: Some(&baseline),
+        },
+    );
+    let f = o
+        .findings
+        .iter()
+        .find(|f| f.rule == "C-HREFLANG-INVALID-CODE")
+        .expect("en-UK is reported");
+    assert_eq!(f.status, FindingStatus::Unknown);
+    assert!(f
+        .evidence
+        .iter()
+        .any(|e| e.detail.starts_with("rule widened")));
 }
 
 #[test]

@@ -359,6 +359,18 @@ fn netlify_shadowing_and_header_removal_are_not_defects() {
         .map(|f| f.url.clone().unwrap_or_default())
         .collect();
     assert_eq!(loops.len(), 1, "{loops:?}");
+    // the shadowed /a/ → /b/ rule never applies, so it is no chain either
+    assert!(
+        !o.findings.iter().any(|f| f.rule == "K-REDIRECT-CHAIN"
+            && f.url
+                .as_deref()
+                .is_some_and(|u| u.ends_with("/a/") || u.ends_with("/b/"))),
+        "{:#?}",
+        o.findings
+            .iter()
+            .filter(|f| f.rule.starts_with("K-REDIRECT"))
+            .collect::<Vec<_>>()
+    );
     assert!(
         loops[0].ends_with("/c/") || loops[0].ends_with("/d/"),
         "{loops:?}"

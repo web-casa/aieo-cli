@@ -300,6 +300,13 @@ fn redirects(c: &Ctx, e: &mut Emitter) {
         if !site.is_own_url(&target) || rule.to.contains(':') && !rule.to.contains("://") {
             continue;
         }
+        // a file at the source shadows an unforced rule: it never applies
+        let shadowed = !rule.force
+            && Url::parse(&site.url_for(&rule.from))
+                .is_ok_and(|u| site.follow_http(&u).hops.is_empty());
+        if shadowed {
+            continue;
+        }
         let followed = site.follow_http(&target);
         if followed.looped {
             continue; // reported as a loop

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://aieo.ee/schemas/rules-history.schema.json",
   "title": "Every rule id @aieo/rules has shipped",
-  "description": "A rule id is never reused. A removed rule stays here with `retired`; `since` is the spec version that introduced it.",
+  "description": "A rule id is never reused. A removed rule stays here with `retired`; `since` is the spec version that introduced it; `changed` lists the versions in which the rule started reporting cases it did not report before.",
   "type": "object",
   "required": [
     "rules"
@@ -33,6 +33,14 @@
           },
           "replaced_by": {
             "type": "string"
+          },
+          "changed": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+            },
+            "description": "Spec versions that widened the rule (new findings on unchanged sites)."
           }
         },
         "additionalProperties": false

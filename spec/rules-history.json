@@ -279,7 +279,10 @@
     },
     {
       "id": "C-HREFLANG-INVALID-CODE",
-      "since": "2.0.0"
+      "since": "2.0.0",
+      "changed": [
+        "3.0.0"
+      ]
     },
     {
       "id": "C-HREFLANG-SELF-MISSING",
@@ -307,11 +310,17 @@
     },
     {
       "id": "C-ROBOTS-BLOCKS-ALL",
-      "since": "2.0.0"
+      "since": "2.0.0",
+      "changed": [
+        "3.0.0"
+      ]
     },
     {
       "id": "C-ROBOTS-AI-SEARCH-BLOCKED",
-      "since": "2.0.0"
+      "since": "2.0.0",
+      "changed": [
+        "3.0.0"
+      ]
     },
     {
       "id": "K-SITE-ORIGIN-MISMATCH",

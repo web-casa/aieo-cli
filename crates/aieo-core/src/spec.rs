@@ -104,6 +104,9 @@ struct ReferrersFile {
 pub struct RuleHistory {
     pub id: String,
     pub since: String,
+    /// spec versions that widened the rule (new findings on unchanged sites)
+    #[serde(default)]
+    pub changed: Vec<String>,
     #[serde(default)]
     pub retired: Option<String>,
     #[serde(default)]
@@ -176,6 +179,16 @@ impl Spec {
             .is_some_and(|h| semver(&h.since) <= semver(version))
     }
 
+    /// Whether `rule` judged then as it does now: it existed in `version`
+    /// and has not been widened since (unknown ids: false).
+    pub fn rule_unchanged_since(&self, rule: &str, version: &str) -> bool {
+        let v = semver(version);
+        self.history
+            .iter()
+            .find(|h| h.id == rule)
+            .is_some_and(|h| semver(&h.since) <= v && h.changed.iter().all(|c| semver(c) <= v))
+    }
+
     /// robots.txt token → F03 category, in catalog order.
     pub fn f03_matrix(&self) -> impl Iterator<Item = (&str, &str)> {
         self.crawlers.iter().filter_map(|c| {
@@ -237,5 +250,10 @@ mod tests {
             "numeric, not lexical"
         );
         assert_eq!(s.history.len(), s.rules.len());
+        // widened in 3.0.0: a 2.x baseline did not judge it the same way
+        assert!(s.rule_existed_in("C-HREFLANG-INVALID-CODE", "2.4.1"));
+        assert!(!s.rule_unchanged_since("C-HREFLANG-INVALID-CODE", "2.4.1"));
+        assert!(s.rule_unchanged_since("C-HREFLANG-INVALID-CODE", "3.0.0"));
+        assert!(s.rule_unchanged_since("C-LINK-BROKEN", "2.0.0"));
     }
 }
