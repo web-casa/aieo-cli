@@ -1,0 +1,3 @@
+# throwaway RSA key for the service-account JWT signing test; not tied to any account
+ed3b9d6606c476e3b88084582b95ce585d992353:crates/aieo-search/tests/test-sa-key.pem:private-key:1
+crates/aieo-search/tests/test-sa-key.pem:private-key:1
