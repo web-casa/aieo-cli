@@ -258,7 +258,15 @@ pub fn render(
             } else {
                 "  ".into()
             };
-            let _ = writeln!(out, "      {marker}{}", location(f, paths));
+            let loc = location(f, paths);
+            if loc.is_empty() {
+                // a site-wide finding: its evidence says where
+                if f.status == FindingStatus::New {
+                    let _ = writeln!(out, "      {}", marker.trim_end());
+                }
+            } else {
+                let _ = writeln!(out, "      {marker}{loc}");
+            }
             for e in &f.evidence {
                 let _ = writeln!(
                     out,

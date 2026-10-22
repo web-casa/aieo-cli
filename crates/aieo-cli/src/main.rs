@@ -20,6 +20,8 @@ use aieo_rules::{check, Options};
 use aieo_site::preset::{detect, infer_origin, PresetKind, Rendering};
 use aieo_site::Site;
 
+mod logs;
+
 /// Exit codes: 0 gate passed · 1 gate failed · 2 incomplete evidence or usage error.
 const EXIT_GATE: u8 = 1;
 const EXIT_INCOMPLETE: u8 = 2;
@@ -87,6 +89,9 @@ enum Command {
     },
     /// Explain one rule
     Explain { rule: String },
+    /// Crawler and AI-referral evidence from access logs
+    #[command(subcommand)]
+    Logs(logs::LogsCommand),
 }
 
 #[derive(Args, Clone)]
@@ -514,17 +519,21 @@ fn cmd_export(target: Target, output: PathBuf, baseline: Option<PathBuf>) -> Res
         Vec::new(),
         if base.is_some() { "diff" } else { "check" },
     )?;
+    let mut bundle = run.bundle;
+    if let Some((log_data, findings)) = logs::for_export(&target)? {
+        aieo_report::attach_logs(&mut bundle, log_data, findings, &[]);
+    }
     let path = if output.is_relative() {
         target.project.join(&output)
     } else {
         output
     };
-    write_file(&path, &run.bundle.to_gzip())?;
+    write_file(&path, &bundle.to_gzip())?;
     eprintln!(
         "bundle written to {} — upload it at aieo.ee or with `aieo push` (0.4)",
         path.display()
     );
-    Ok(if run.bundle.summary.incomplete {
+    Ok(if bundle.summary.incomplete {
         EXIT_INCOMPLETE
     } else {
         0
@@ -697,6 +706,13 @@ fn main() -> ExitCode {
         } => cmd_export(target, output, baseline),
         Command::Rules { family, all } => cmd_rules(family, all, lang),
         Command::Explain { rule } => cmd_explain(&rule, lang),
+        Command::Logs(cmd) => match cmd {
+            logs::LogsCommand::Ingest(args) => logs::cmd_ingest(args),
+            logs::LogsCommand::Report(args) => logs::cmd_report(args, lang),
+            logs::LogsCommand::Gaps { window, actor } => logs::cmd_gaps(window, actor),
+            logs::LogsCommand::Referrals { window } => logs::cmd_referrals(window),
+            logs::LogsCommand::Pull(source) => logs::cmd_pull(source),
+        },
     };
     match result {
         Ok(code) => ExitCode::from(code),

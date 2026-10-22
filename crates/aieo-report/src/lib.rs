@@ -144,6 +144,86 @@ pub fn build_bundle(outcome: &Outcome, meta: &RunMeta) -> Bundle {
     }
 }
 
+/// Add access-log evidence and its L findings to a bundle: the `logs`
+/// kind, salted-hash privacy, and the summary and gate recomputed.
+pub fn attach_logs(
+    bundle: &mut Bundle,
+    logs: aieo_core::bundle::Logs,
+    findings: Vec<aieo_core::Finding>,
+    fail_on: &[GateCondition],
+) {
+    if !bundle.run.kinds.iter().any(|k| k == "logs") {
+        bundle.run.kinds.push("logs".into());
+    }
+    bundle.logs = Some(logs);
+    bundle.privacy.ip = "salted-hash".into();
+    bundle.findings.extend(findings);
+    bundle.findings.sort_by(|a, b| {
+        b.tier
+            .cmp(&a.tier)
+            .then_with(|| a.rule.cmp(&b.rule))
+            .then_with(|| a.url.cmp(&b.url))
+            .then_with(|| a.fingerprint.cmp(&b.fingerprint))
+    });
+    bundle.summary.findings = counts(bundle.findings.iter());
+    bundle.summary.gate = Gate {
+        fail_on: fail_on.iter().map(GateCondition::label).collect(),
+        passed: gate_passes(&bundle.findings, fail_on),
+    };
+}
+
+/// A bundle with no build behind it (`aieo logs report` without a build
+/// directory): no readiness, an empty inventory.
+pub fn empty_bundle(meta: &RunMeta) -> Bundle {
+    Bundle {
+        schema: BUNDLE_SCHEMA.into(),
+        producer: Producer {
+            name: "aieo-cli".into(),
+            version: CLI_VERSION.into(),
+            rules_version: spec().rules_version.clone(),
+            crawlers_version: Some(spec().crawlers_version.clone()),
+        },
+        generated_at: meta.generated_at.clone(),
+        site: SiteInfo {
+            origin: meta.origin.clone(),
+            preset: meta.preset.clone(),
+            project_id: meta.project_id.clone(),
+        },
+        run: RunInfo {
+            kinds: meta.kinds.clone(),
+            mode: "dist".into(),
+            commit: meta.commit.clone(),
+            branch: meta.branch.clone(),
+            ci: meta.ci.clone(),
+            duration_ms: meta.duration_ms,
+        },
+        readiness: None,
+        inventory: Inventory {
+            pages: Vec::new(),
+            sitemaps: Vec::new(),
+            robots_txt: false,
+            llms_txt: false,
+        },
+        findings: Vec::new(),
+        diff: None,
+        summary: Summary {
+            pages: 0,
+            indexable: 0,
+            findings: TierCounts::default(),
+            new: None,
+            gate: Gate {
+                fail_on: meta.fail_on.iter().map(GateCondition::label).collect(),
+                passed: true,
+            },
+            incomplete: false,
+            incomplete_reasons: Vec::new(),
+        },
+        logs: None,
+        search: None,
+        privacy: Privacy::default(),
+    }
+}
+
 /// Where findings live in the repository, for formats that link to files.
 #[derive(Debug, Clone)]
 pub struct Paths {

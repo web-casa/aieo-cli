@@ -84,6 +84,22 @@ pub struct CrawlerSpec {
     pub docs_url: Option<String>,
 }
 
+/// An AI answer platform as it shows in access logs (referrer or `utm_source`).
+#[derive(Debug, Clone, Deserialize)]
+pub struct AiPlatform {
+    pub id: String,
+    pub name: String,
+    pub operator: String,
+    pub referrer_hosts: Vec<String>,
+    pub utm_sources: Vec<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReferrersFile {
+    version: String,
+    platforms: Vec<AiPlatform>,
+}
+
 #[derive(Debug, Deserialize)]
 struct RulesFile {
     version: String,
@@ -107,6 +123,8 @@ pub struct Spec {
     pub rules: Vec<RuleSpec>,
     pub crawlers_version: String,
     pub crawlers: Vec<CrawlerSpec>,
+    pub referrers_version: String,
+    pub ai_platforms: Vec<AiPlatform>,
     /// content hash of the exported `@aieo/rules` files (spec/SOURCE.json)
     pub source_sha256: String,
 }
@@ -135,6 +153,7 @@ impl Spec {
 
 pub const RULES_JSON: &str = include_str!("../../../spec/rules.json");
 pub const CRAWLERS_JSON: &str = include_str!("../../../spec/crawlers.json");
+pub const AI_REFERRERS_JSON: &str = include_str!("../../../spec/ai-referrers.json");
 pub const BUNDLE_SCHEMA_JSON: &str = include_str!("../../../spec/bundle.schema.json");
 const SOURCE_JSON: &str = include_str!("../../../spec/SOURCE.json");
 
@@ -144,12 +163,16 @@ pub fn spec() -> &'static Spec {
         let rules: RulesFile = serde_json::from_str(RULES_JSON).expect("spec/rules.json");
         let crawlers: CrawlersFile =
             serde_json::from_str(CRAWLERS_JSON).expect("spec/crawlers.json");
+        let referrers: ReferrersFile =
+            serde_json::from_str(AI_REFERRERS_JSON).expect("spec/ai-referrers.json");
         let source: SourceFile = serde_json::from_str(SOURCE_JSON).expect("spec/SOURCE.json");
         Spec {
             rules_version: rules.version,
             rules: rules.rules,
             crawlers_version: crawlers.version,
             crawlers: crawlers.crawlers,
+            referrers_version: referrers.version,
+            ai_platforms: referrers.platforms,
             source_sha256: source.sha256,
         }
     })
@@ -167,5 +190,6 @@ mod tests {
         assert_eq!(s.f03_matrix().count(), 15);
         assert_eq!(s.f03_matrix().next(), Some(("oai-searchbot", "search")));
         assert_eq!(s.source_sha256.len(), 64);
+        assert!(s.ai_platforms.iter().any(|p| p.id == "chatgpt"));
     }
 }

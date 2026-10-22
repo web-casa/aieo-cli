@@ -26,7 +26,7 @@ pub struct Bundle {
     pub findings: Vec<Finding>,
     pub diff: Option<DiffInfo>,
     pub summary: Summary,
-    pub logs: Option<serde_json::Value>,
+    pub logs: Option<Logs>,
     pub search: Option<serde_json::Value>,
     pub privacy: Privacy,
 }
@@ -187,6 +187,101 @@ pub struct Summary {
     pub gate: Gate,
     pub incomplete: bool,
     pub incomplete_reasons: Vec<String>,
+}
+
+/// Status classes of a group of requests.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StatusBuckets {
+    #[serde(rename = "2xx")]
+    pub s2: u64,
+    #[serde(rename = "3xx")]
+    pub s3: u64,
+    #[serde(rename = "4xx")]
+    pub s4: u64,
+    #[serde(rename = "5xx")]
+    pub s5: u64,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VerificationCounts {
+    pub verified: u64,
+    pub mismatch: u64,
+    pub unverifiable: u64,
+    pub unchecked: u64,
+}
+
+/// Crawler and AI-referral aggregates (`aieo logs`); `bundle.schema.json#/properties/logs`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Logs {
+    pub window: LogWindow,
+    pub crawlers_version: String,
+    pub sources: Vec<LogSource>,
+    pub bots: Vec<LogBot>,
+    pub per_url_actor_day: Vec<LogUrlDay>,
+    pub referrals: Vec<LogReferral>,
+    pub coverage: Vec<LogCoverage>,
+    pub anomalies: Vec<LogAnomaly>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogWindow {
+    pub from: String,
+    pub to: String,
+    pub days: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogSource {
+    pub format: String,
+    pub lines: u64,
+    pub hits: u64,
+    pub skipped: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogBot {
+    pub bot: Option<String>,
+    pub actor: String,
+    pub hits: u64,
+    pub verification: VerificationCounts,
+    pub status: StatusBuckets,
+    pub first_seen: String,
+    pub last_seen: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogUrlDay {
+    pub path: String,
+    pub actor: String,
+    pub bot: Option<String>,
+    pub day: String,
+    pub hits: u64,
+    pub verified: u64,
+    pub status: StatusBuckets,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogReferral {
+    pub landing: String,
+    pub platform: String,
+    pub day: String,
+    pub visits: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogCoverage {
+    pub actor: String,
+    pub bot: Option<String>,
+    pub indexable: u64,
+    pub crawled: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogAnomaly {
+    pub day: String,
+    pub kind: String,
+    pub count: u64,
+    pub baseline: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

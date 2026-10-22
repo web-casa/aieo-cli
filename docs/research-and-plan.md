@@ -383,9 +383,25 @@ aieo-cli/ (cargo workspace, MIT)
   - 性能：portcyou 11,403 页 3.2 秒（0.1 为 2.5 秒）。
 - Rust 测试共 69 个，`clippy -D warnings` 干净。
 
+### 0.3 已完成
+- **规格 `@aieo/rules` 2.2.0**：新增 L 系列 7 条规则；爬虫目录增加 DuckDuckBot、YandexBot、Baiduspider、PetalBot、MistralAI-User（共 26 个，均不进 F03，aieo.ee 评分不变）；`aieo-bundle/v1` 的 `logs` 从占位改为正式结构（时间窗、来源、每个爬虫的验证与状态码、按 URL×爬虫×天的抓取、AI 引荐、覆盖率、异常）。
+- **新 crate `aieo-logs`**：
+  - 解析：Nginx/Apache combined（含 vhost、common）、自定义 `nginx:` / `apache:` 格式串、Caddy JSON、Cloudflare Logpush（5 种时间戳格式）、Vercel Drains（按 `requestId` 去重，跳过非请求行）、CloudFront 标准日志 v1（按 `#Fields` 解析、UA 解码、`000` 跳过）和 v2 JSON；`.gz` 流式读取；按文件自动识别格式。字段格式均按官方文档核对（2026-10）。
+  - 分类：按规格里的爬虫目录匹配 UA（长令牌优先），其余自动化记为 unknown_bot；AI 引荐按 referrer 主机或 `utm_source`。
+  - 验证：官方 IP 段（缓存一天，记录 `creationTime`；所有厂商都用 `{creationTime, prefixes}` 格式）+ FCrDNS（Googlebot、Bingbot、Applebot、CCBot、YandexBot、Baiduspider、PetalBot）；结果 verified / mismatch / unverifiable / unchecked；`--offline` 不联网。
+  - 存储：`.aieo/logs.db`；文件按前 4 KiB 内容识别，增长的日志从上次位置续读、轮转副本不重复计数；爬虫请求存加盐 IP 哈希，普通访问只存每日计数，不存 IP 和浏览器 UA；自动写 `.aieo/.gitignore`。
+  - Cloudflare GraphQL（`aieo logs pull cloudflare`）：从 `settings` 读套餐限制，按 `maxDuration` 分段，满页自动二分；状态码不能分组时按状态区间分别查询；采样计数以 `weight` 存储，重复拉取覆盖而不累加。token 只从环境变量读取。
+- **命令**：`aieo logs ingest | report | gaps | referrals | pull cloudflare`；`aieo export` 在有日志时附带 `logs` 段和 L 发现。
+- **L 规则**：爬虫多数请求被 401/403/429 拦截（WAF/CDN）、爬虫 5xx、robots.txt 返回 5xx/429、爬虫 404 激增、冒充爬虫、已验证爬虫抓取被禁止路径、AI 搜索爬虫覆盖率低。
+- **验证**：合成两周日志（真实官方 IP 段 + 冒充者）端到端跑通，在线验证正确识别冒充的 Googlebot / OAI-SearchBot 和被 WAF 拦截的 GPTBot；导出的证据包通过 Schema 校验且不含任何 IP 和浏览器 UA。100 万行日志导入 6.3 秒，报告 0.9 秒。
+- Rust 测试共 82 个，clippy 干净；版本号升到 0.3.0。
+- **待验收**：本机没有真实访问日志，"对自有站真实日志产出可解释报告"还需要一份真实日志或 Cloudflare token。Cloudflare GraphQL 只用模拟服务器测试过，尚未连真实 API。
+
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。
 - 没有采用 schemaorg-validate（"schemaorg-rs"）：它把 Article 的 headline/image/datePublished/author 当作必需属性，与 Google 文档"Article 没有必需属性"相矛盾，词表也不完整。改为自维护一张按官方文档核对过的必需属性表；Microdata / RDFa 暂不检查。
+- 日志没有用 hickory-resolver，FCrDNS 走系统解析器（dns-lookup），足够且不引入异步运行时；IP 验证在导入时完成（之后不再保存原始 IP），换列表版本后旧记录不会重新验证。
+- Cloudflare GraphQL 不提供 IP 和 AI 引荐（引荐维度仅付费套餐），只用于爬虫流量；需要逐条数据时用 Logpush。
 - P01–P04 不进 aieo.ee 的 TS 引擎（它们来自 GEOReady 的付费层），规格里标为仅 Rust 实现，没有一致性测试。
 - 证据包里没有 `integrity` 字段：跨语言的规范化哈希不划算，传输时用 gzip + HTTPS。
 - F15 在构建模式下检查首页的 `.md` 副本，不受一致性测试锁定。

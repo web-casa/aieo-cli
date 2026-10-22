@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "rules": [
     {
       "id": "F01",
@@ -2631,6 +2631,193 @@
       },
       "modes": [
         "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "L-BOT-BLOCKED",
+      "family": "L",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Crawler blocked by the server or CDN",
+        "zh": "爬虫被服务器或 CDN 拦截"
+      },
+      "description": {
+        "en": "Most requests from a known crawler are answered 401, 403 or 429. A WAF, bot-protection or rate-limit rule is turning it away, so the pages cannot be indexed or cited by that service.",
+        "zh": "某个已知爬虫的大部分请求都收到 401、403 或 429。WAF、防机器人或限流规则把它挡在了门外，这个服务就无法收录或引用这些页面。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "logs"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    },
+    {
+      "id": "L-BOT-SERVER-ERRORS",
+      "family": "L",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Crawlers receive server errors",
+        "zh": "爬虫收到服务器错误"
+      },
+      "description": {
+        "en": "A known crawler receives 5xx responses on a noticeable share of its requests. Repeated server errors make crawlers slow down and drop URLs.",
+        "zh": "某个已知爬虫有相当比例的请求收到 5xx。反复出现服务器错误会让爬虫降低抓取频率并丢弃 URL。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "logs"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/http-network-errors"
+    },
+    {
+      "id": "L-ROBOTS-TXT-UNAVAILABLE",
+      "family": "L",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "robots.txt unavailable to crawlers",
+        "zh": "爬虫取不到 robots.txt"
+      },
+      "description": {
+        "en": "Crawlers requesting /robots.txt got a 5xx or 429. Google then treats the whole site as disallowed until robots.txt is reachable again.",
+        "zh": "爬虫请求 /robots.txt 时收到 5xx 或 429。此时 Google 会把整站当作禁止抓取，直到 robots.txt 恢复可访问。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "logs"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/robots/robots_txt#http-status-codes"
+    },
+    {
+      "id": "L-404-SPIKE",
+      "family": "L",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Crawler 404s spiked",
+        "zh": "爬虫 404 激增"
+      },
+      "description": {
+        "en": "On one day crawlers hit far more 404s than usual — typically a deploy that removed or moved URLs without redirects.",
+        "zh": "某一天爬虫遇到的 404 远多于平时，通常是某次部署删除或移动了 URL 却没有加重定向。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "logs"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "L-SPOOFED-BOT",
+      "family": "L",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Requests impersonate a known crawler",
+        "zh": "有请求冒充已知爬虫"
+      },
+      "description": {
+        "en": "Requests carry a known crawler's user agent but come from addresses outside its published IP ranges (or fail reverse-DNS verification). Do not allow-list by user agent alone.",
+        "zh": "这些请求使用已知爬虫的 User-Agent，但来源地址不在其公布的 IP 段内（或反向 DNS 验证失败）。不要只按 User-Agent 放行。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "logs"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot"
+    },
+    {
+      "id": "L-DISALLOWED-CRAWLED",
+      "family": "L",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Crawler fetched disallowed paths",
+        "zh": "爬虫抓取了被禁止的路径"
+      },
+      "description": {
+        "en": "A verified crawler fetched paths that the build's robots.txt disallows for it. Either robots.txt changed after those fetches or the rule does not say what you intend.",
+        "zh": "经过验证的爬虫抓取了当前构建的 robots.txt 禁止它访问的路径。可能是 robots.txt 在这些抓取之后才改过，也可能是规则写得和本意不一致。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "logs"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://www.rfc-editor.org/rfc/rfc9309"
+    },
+    {
+      "id": "L-AI-SEARCH-COVERAGE-LOW",
+      "family": "L",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "AI search crawlers reach few pages",
+        "zh": "AI 搜索爬虫覆盖的页面很少"
+      },
+      "description": {
+        "en": "In the log window, AI search crawlers (OAI-SearchBot, Claude-SearchBot, PerplexityBot and others) fetched only a small share of the indexable pages, so answer engines are working from few or stale copies.",
+        "zh": "在日志时间窗内，AI 搜索爬虫（OAI-SearchBot、Claude-SearchBot、PerplexityBot 等）只抓取了很少一部分可索引页面，答案引擎手里的副本很少或已经过时。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "logs"
       ],
       "evidence_level": "heuristic",
       "implementations": [

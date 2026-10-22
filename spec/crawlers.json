@@ -1,6 +1,6 @@
 {
   "$schema": "./crawlers.schema.json",
-  "version": "2026-10-22",
+  "version": "2026-10-23",
   "crawlers": [
     {
       "id": "oai-searchbot",
@@ -308,6 +308,82 @@
       "robots_only": false,
       "verify": {
         "ip_ranges_url": "https://duckduckgo.com/duckassistbot.json",
+        "rdns_suffixes": []
+      }
+    },
+    {
+      "id": "duckduckbot",
+      "name": "DuckDuckBot",
+      "operator": "DuckDuckGo",
+      "purpose": "classic_search",
+      "robots_token": "duckduckbot",
+      "ua_pattern": "DuckDuckBot",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": "https://duckduckgo.com/duckduckbot.json",
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://duckduckgo.com/duckduckgo-help-pages/results/duckduckbot"
+    },
+    {
+      "id": "yandexbot",
+      "name": "YandexBot",
+      "operator": "Yandex",
+      "purpose": "classic_search",
+      "robots_token": "yandexbot",
+      "ua_pattern": "YandexBot",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": [
+          "yandex.ru",
+          "yandex.net",
+          "yandex.com"
+        ]
+      },
+      "docs_url": "https://yandex.com/support/webmaster/robot-workings/check-yandex-robots.html"
+    },
+    {
+      "id": "baiduspider",
+      "name": "Baiduspider",
+      "operator": "Baidu",
+      "purpose": "classic_search",
+      "robots_token": "baiduspider",
+      "ua_pattern": "Baiduspider",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": [
+          "baidu.com",
+          "baidu.jp"
+        ]
+      }
+    },
+    {
+      "id": "petalbot",
+      "name": "PetalBot",
+      "operator": "Huawei",
+      "purpose": "classic_search",
+      "robots_token": "petalbot",
+      "ua_pattern": "PetalBot",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": [
+          "petalsearch.com"
+        ]
+      }
+    },
+    {
+      "id": "mistralai-user",
+      "name": "MistralAI-User",
+      "operator": "Mistral AI",
+      "purpose": "user_fetch",
+      "robots_token": "mistralai-user",
+      "ua_pattern": "MistralAI-User",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": "https://mistral.ai/mistralai-user-ips.json",
         "rdns_suffixes": []
       }
     }

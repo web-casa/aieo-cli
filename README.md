@@ -18,6 +18,8 @@ aieo snapshot                   # save .aieo/baseline.json
 aieo diff                       # fail only on findings new since the baseline
 aieo export                     # .aieo/bundle.json.gz (aieo-bundle/v1) for aieo.ee
 aieo rules / aieo explain C-SITEMAP-URL-NOINDEX
+aieo logs ingest /var/log/nginx/  # crawler & AI-referral evidence from access logs
+aieo logs report                # coverage, verification, blocking, errors, AI referrals
 ```
 
 ## Frameworks
@@ -56,6 +58,7 @@ its snapshot (`cargo test -p aieo-cli --test presets`).
 | **T-…** | per page | missing title, duplicate titles (hreflang alternates excepted), malformed JSON-LD, JSON-LD without schema.org `@context`, missing properties Google requires for a rich result, retired rich result types (HowTo, FAQPage, …) |
 | **C-…** | across the build | sitemap lists a page that is missing / noindex / non-canonical / on another host / blocked by robots.txt; hreflang without return link; canonical to a missing page or another host; broken internal links; orphan pages; llms.txt links to missing pages; `Disallow: /` shipped to production; AI search crawlers blocked |
 | **K-…** | configuration | framework `site` / base path / trailing-slash setting contradicted by canonical and sitemap URLs; redirect loops, chains and dead targets (with file and line); a header rule that noindexes sitemap pages; Next.js `redirects()` ignored by static export; routes answered by one client-rendered shell |
+| **L-…** | access logs (`aieo logs`) | crawler blocked by WAF/CDN, crawler 5xx, robots.txt unavailable, 404 spike after a deploy, spoofed crawlers, disallowed paths crawled, low AI-search coverage |
 | **D-…** | against a baseline | page removed without redirect, page turned noindex, canonical changed, hreflang or structured data lost, content shrank |
 
 Every rule has an id, a tier and a source: `aieo rules`, `aieo explain <id>`.
@@ -78,6 +81,46 @@ the conformance fixtures in `spec/fixtures/conformance`: the same tiny sites,
 the same module status, ratio and reason (`cargo test -p aieo-rules --test
 conformance`). F01 (HTTPS, redirects) needs a live origin; F15 reads a `.md`
 twin of the homepage instead of content negotiation.
+
+## Access logs
+
+```sh
+aieo logs ingest access.log access.log.1.gz   # Nginx/Apache, Caddy, Cloudflare Logpush,
+                                              # Vercel drains, CloudFront — detected per file
+aieo logs ingest app.log --format "nginx:\$host \$remote_addr [\$time_local] \"\$request\" \$status …"
+CLOUDFLARE_API_TOKEN=… aieo logs pull cloudflare --zone <zone id> --since 7d
+aieo logs report [--since 30d] [--format json]
+aieo logs gaps --actor search_index           # indexable pages AI search crawlers never fetched
+aieo logs referrals                           # landing pages of visits from ChatGPT, Perplexity, …
+```
+
+- **Who**: user agents are matched against the shared crawler catalog
+  (`spec/crawlers.json`: OAI-SearchBot, ChatGPT-User, GPTBot, Claude-*,
+  PerplexityBot, Googlebot, Bingbot, Applebot, …) and classed as
+  `search_index`, `user_fetch`, `training`, `classic_search`, other
+  automation or people. Visits whose referrer (or `utm_source`) is an AI
+  answer platform are AI referrals.
+- **Verified or not**: a claimed crawler is checked against its
+  operator's published IP ranges (downloaded, cached a day under
+  `.aieo/cache/`, list `creationTime` recorded), then by
+  forward-confirmed reverse DNS where the operator documents it.
+  `mismatch` = spoofed; a crawler without a published method is
+  `unverifiable`, never called fake. `--offline` skips the network.
+- **Kept locally**: `.aieo/logs.db` (SQLite). A file is recognised by its
+  first bytes, so a growing log resumes and a rotated copy is not counted
+  twice. Crawler requests keep a salted IP hash (`.aieo/salt`), people only
+  per-day counts — no IPs, no browser user agents. `.aieo/.gitignore`
+  keeps the salt, database and caches out of git.
+- **Findings (L)**: a crawler mostly answered 401/403/429 (WAF / bot
+  protection), crawler 5xx, robots.txt unavailable (5xx/429), a crawler
+  404 spike, spoofed crawlers, verified crawlers on disallowed paths, AI
+  search crawlers reaching few indexable pages. With a build next to the
+  logs, coverage is measured against its indexable pages.
+- **Cloudflare GraphQL** returns sampled hourly counts without IPs: rows
+  carry their count, verification stays `unchecked`, and the plan's
+  limits are read from the zone's `settings`.
+- `aieo export` adds the log aggregates (`logs` in `aieo-bundle/v1`) when
+  `.aieo/logs.db` exists.
 
 ## Configuration (`aieo.toml`)
 
@@ -106,7 +149,7 @@ expires = "2026-12-31"
 
 ```yaml
 - run: npm run build
-- uses: web-casa/aieo-cli@v0.1     # composite action, see action.yml
+- uses: web-casa/aieo-cli@v0.3     # composite action, see action.yml
   with:
     command: diff                  # or check
     upload-sarif: "true"           # GitHub code scanning (security-events: write)
@@ -139,6 +182,8 @@ pnpm --filter @aieo/rules export:cli <path to this repo>
 Crates: `aieo-core` (spec, findings, config, bundle) · `aieo-site` (build
 directory as production serves it: routes, host rules, robots, sitemaps,
 HTML, framework presets) · `aieo-rules` (F / P / T / C / K / D) ·
-`aieo-report` (formats) · `aieo-cli` (the `aieo` binary).
+`aieo-report` (formats) · `aieo-logs` (parsers, classification, IP
+verification, SQLite store, Cloudflare GraphQL) · `aieo-cli` (the `aieo`
+binary).
 
 MIT licensed.
