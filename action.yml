@@ -1,6 +1,6 @@
 name: aieo check
 description: SEO/GEO checks for a site's build output — sitemap, robots, canonical, hreflang, llms.txt and regressions — before it ships.
-author: AIEO
+author: Web-Casa
 branding:
   icon: search
   color: green
@@ -28,7 +28,7 @@ inputs:
     description: Path to write SARIF to (relative to working-directory); empty to skip
     default: aieo.sarif
   upload-sarif:
-    description: Upload the SARIF to GitHub code scanning (needs `security-events: write`)
+    description: "Upload the SARIF to GitHub code scanning (needs `security-events: write`)"
     default: "false"
   bundle:
     description: Path to write the aieo-bundle/v1 evidence file to; empty to skip
