@@ -300,7 +300,14 @@ impl Site {
                 // a rewrite: the target's content answers under this path
                 if let Ok(u) = self.origin.join(&t.location) {
                     if self.is_own_url(&u) {
-                        if let Some(f) = self.routes.get(u.path()) {
+                        let p = u.path();
+                        // `/en/` for `en.html`, like a direct request would
+                        let found = self.routes.get(p).or_else(|| {
+                            p.strip_suffix('/')
+                                .filter(|q| !q.is_empty())
+                                .and_then(|q| self.routes.get(q))
+                        });
+                        if let Some(f) = found {
                             return Resolution::File(f.clone());
                         }
                     }
@@ -574,6 +581,11 @@ mod tests {
             Resolution::File("b/index.html".into())
         );
         assert_eq!(s.resolve_path("/nope"), Resolution::Missing);
+        assert_eq!(
+            s.resolve_path("/proxy/"),
+            Resolution::File("b/index.html".into()),
+            "a rewrite target is looked up like a request"
+        );
         assert_eq!(s.resolve_path("/_headers"), Resolution::Missing);
         let followed = s.follow(&Url::parse("https://example.com/old").unwrap());
         assert_eq!(followed.file.as_deref(), Some("b/index.html"));

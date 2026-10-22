@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "version": "2.3.0",
+  "version": "2.4.1",
   "rules": [
     {
       "id": "F01",
@@ -1509,7 +1509,7 @@
         "zh": "结构化数据类型已不再展示"
       },
       "description": {
-        "en": "Google no longer shows rich results for this type (HowTo, FAQPage, SpecialAnnouncement, ClaimReview). The markup does no harm but earns nothing in Search.",
+        "en": "Google no longer shows rich results for this type (HowTo, FAQPage, SpecialAnnouncement, ClaimReview). Keeping it does no harm but earns nothing in Search.",
         "zh": "Google 已不再为此类型（HowTo、FAQPage、SpecialAnnouncement、ClaimReview）展示富媒体结果。保留标记无害，但在搜索中没有收益。"
       },
       "tier": {

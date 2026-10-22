@@ -15,13 +15,14 @@ use aieo_core::bundle::Bundle;
 use aieo_core::config::{parse_fail_on, resolve_settings, Config, GateCondition, CONFIG_FILE};
 use aieo_core::spec::{spec, RuleClass};
 use aieo_core::{Lang, Tier};
-use aieo_report::{build_bundle, github, markdown, pretty, sarif, Paths, RunMeta};
+use aieo_report::{build_bundle, github, junit, markdown, pretty, sarif, Paths, RunMeta};
 use aieo_rules::{check, Options};
 use aieo_site::preset::{detect, infer_origin, PresetKind, Rendering};
 use aieo_site::Site;
 
 mod cloud;
 mod logs;
+mod mcp;
 mod search;
 
 /// Exit codes: 0 gate passed · 1 gate failed · 2 incomplete evidence or usage error.
@@ -104,6 +105,12 @@ enum Command {
     /// Search Console and Bing Webmaster evidence, read against the build
     #[command(subcommand)]
     Search(search::SearchCommand),
+    /// Serve the checks to coding agents over MCP (stdio; read-only tools)
+    Mcp {
+        /// Project root
+        #[arg(short = 'C', long, default_value = ".")]
+        project: PathBuf,
+    },
 }
 
 #[derive(Args, Clone)]
@@ -131,6 +138,7 @@ enum Format {
     Sarif,
     Github,
     Markdown,
+    Junit,
 }
 
 #[derive(Args, Clone)]
@@ -149,7 +157,7 @@ struct CheckArgs {
     /// Write the stdout format to a file instead
     #[arg(short, long)]
     output: Option<PathBuf>,
-    /// Extra reports: FORMAT=PATH (json, sarif, github, markdown, bundle); repeatable
+    /// Extra reports: FORMAT=PATH (json, sarif, github, markdown, junit, bundle); repeatable
     #[arg(long = "report", value_name = "FORMAT=PATH")]
     reports: Vec<String>,
     /// Findings listed per rule in terminal / Markdown output
@@ -225,7 +233,8 @@ fn prepare(t: &Target) -> Result<Prepared> {
         );
     }
     let mut notes = Vec::new();
-    let build = project.build(&dist);
+    let mut build = project.build(&dist);
+    hosting_rules(&root, &config, &mut build.options.host);
     if let Some(problem) = &build.problem {
         bail!("{problem}");
     }
@@ -258,6 +267,34 @@ fn prepare(t: &Target) -> Result<Prepared> {
         site,
         notes,
     })
+}
+
+/// `[[hosting.rewrites]]` / `[[hosting.redirects]]` from aieo.toml: what
+/// middleware or the host does that the build cannot show.
+fn hosting_rules(root: &Path, config: &Config, host: &mut aieo_site::hosting::HostConfig) {
+    use aieo_site::hosting::{HostConfig, RuleSource};
+    let text = std::fs::read_to_string(root.join(CONFIG_FILE)).unwrap_or_default();
+    let at = |from: &str| RuleSource {
+        file: CONFIG_FILE.into(),
+        line: text
+            .lines()
+            .position(|l| l.contains(&format!("\"{from}\"")) && l.trim_start().starts_with("from"))
+            .map(|i| i + 1),
+    };
+    let redirects = config
+        .hosting
+        .redirects
+        .iter()
+        .map(|r| (r.from.clone(), r.to.clone(), r.status.unwrap_or(308), at(&r.from)))
+        .collect();
+    let rewrites = config
+        .hosting
+        .rewrites
+        .iter()
+        .map(|r| (r.from.clone(), r.to.clone(), at(&r.from)))
+        .collect();
+    host.extend(HostConfig::redirect_list(redirects));
+    host.extend(HostConfig::rewrite_list(rewrites));
 }
 
 /// `dist` relative to `root` when it lies inside it.
@@ -392,8 +429,9 @@ fn render(run: &Run, format: &str, lang: Lang, args: &CheckArgs, color: bool) ->
         "sarif" => sarif::render(&run.bundle, &paths).into_bytes(),
         "github" => github::render(&run.bundle, &paths).into_bytes(),
         "markdown" => markdown::render(&run.bundle, lang, args.max_per_rule).into_bytes(),
+        "junit" => junit::render(&run.bundle, &paths).into_bytes(),
         "bundle" => run.bundle.to_gzip(),
-        other => bail!("unknown report format {other:?} (json, sarif, github, markdown, bundle)"),
+        other => bail!("unknown report format {other:?} (json, sarif, github, markdown, junit, bundle)"),
     })
 }
 
@@ -404,6 +442,7 @@ fn format_name(f: Format) -> &'static str {
         Format::Sarif => "sarif",
         Format::Github => "github",
         Format::Markdown => "markdown",
+        Format::Junit => "junit",
     }
 }
 
@@ -732,6 +771,7 @@ fn main() -> ExitCode {
         Command::Push(args) => cloud::cmd_push(args),
         Command::Indexnow(cmd) => cloud::cmd_indexnow(cmd),
         Command::Search(cmd) => search::cmd_search(cmd),
+        Command::Mcp { project } => mcp::serve(project),
     };
     match result {
         Ok(code) => ExitCode::from(code),

@@ -233,6 +233,7 @@ packages/rules/
 - **GitHub Action**：`web-casa/aieo-cli@v1`，一个 Action 完成 check、diff、可选 push 和 IndexNow；另提供 GitLab CI 模板。
 - **MCP 与 Agent Skill**：`aieo mcp` 是基于 `rmcp` 的 stdio 服务，只读工具优先，写操作生成 plan；同时提供 `SKILL.md`。
 - **其他命令**：`aieo explain <RULE_ID>` 输出证据与修复说明；`aieo rules list --mode dist`。
+- **分发与增长**：各 Agent 平台的打包、上架、Skill 拆分、aieo.ee 远程 MCP 的 OAuth，以及用户、口碑、收录三条增长线，见独立方案 [`ecosystem-and-growth.md`](ecosystem-and-growth.md)。
 
 ---
 
@@ -411,8 +412,18 @@ aieo-cli/ (cargo workspace, MIT)
   - 42 项 API 测试、Web 测试、类型检查、生成文档检查全部通过。
 - **端到端验证**：本地起 aieo.ee API（专用 fixtest 库），`aieo login` 自动找到匹配项目，`aieo push` 上传成功，概览接口返回页面清单、爬虫与引荐汇总；只读 key 被正确拒绝。
 - 与方案的出入：上传端点用现有的 `/api/projects/...` 而不是 `/api/v1/...`（aieo.ee 目前没有版本化 API）；没有用系统钥匙串，凭据文件按 gh/gcloud 的做法存放；设备授权流程不支持 Search Console 权限，所以 CI 用服务账号。
-- Rust 测试共 102 个，clippy 干净；版本号升到 0.4.0。
+- Rust 测试共 102 个，clippy 干净；版本号升到 0.4.0（1.0 升到 1.0.0）。
 - **待验收**：Google / Bing / IndexNow 只用模拟响应测过，尚未用真实凭据跑通；aieo.ee 的"内部视角"页面只跑了组件测试，没有在浏览器里看过。
+
+### 1.0 已完成
+- `aieo mcp`：基于 rmcp 的 stdio MCP 服务，10 个只读工具；写操作只提供 `*_plan`。
+- `skills/aieo/SKILL.md`：Agent 修复循环，随 release 附带。
+- `--format junit` 与 GitLab 模板 `ci/gitlab-ci.yml`；Action 新增 `push`、`aieo-api-key`、`indexnow` 输入。
+- `aieo.toml` 的 `[[hosting.rewrites]]` / `[[hosting.redirects]]`：描述构建看不到的路由（Next 中间件等）。在 aieo.ee 自身构建上，277 个断链误报降为 0。
+- 规则版本策略：`@aieo/rules` 2.4.1 起附 `rules-history.json`；基线之后新增规则的发现记为 `unknown`，升级不会让 `diff` 失败。
+- 发布：musl 静态 Linux、macOS 双架构、Windows；`install.sh` 校验 sha256。npm 与 Homebrew 的打包已就绪，但首发只走 GitHub Release（缺 token 时对应 job 跳过）。
+- aieo.ee 文档站新增中英 CLI 文档（`/docs/cli`），规则参考页由 `@aieo/rules` 生成。
+- 分发与增长另见 [`ecosystem-and-growth.md`](ecosystem-and-growth.md)。
 
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。

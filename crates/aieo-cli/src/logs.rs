@@ -94,10 +94,10 @@ pub struct IngestArgs {
 #[derive(Args, Clone)]
 pub struct Window {
     #[command(flatten)]
-    target: Target,
+    pub(crate) target: Target,
     /// Days back from the newest request: 30 or 30d
     #[arg(long, default_value = "30d")]
-    since: String,
+    pub(crate) since: String,
 }
 
 #[derive(Args)]
@@ -282,16 +282,16 @@ pub fn cmd_pull(source: PullSource) -> Result<u8> {
 }
 
 /// The report with the build's inventory when there is a build.
-struct Built {
-    report: Report,
-    bundle: Bundle,
-    findings: Vec<Finding>,
+pub(crate) struct Built {
+    pub(crate) report: Report,
+    pub(crate) bundle: Bundle,
+    pub(crate) findings: Vec<Finding>,
     fail_on: Vec<GateCondition>,
-    notes: Vec<String>,
+    pub(crate) notes: Vec<String>,
     store: Store,
 }
 
-fn build_report(window: &Window, kinds: &str, fail_on: Vec<GateCondition>) -> Result<Built> {
+pub(crate) fn build_report(window: &Window, kinds: &str, fail_on: Vec<GateCondition>) -> Result<Built> {
     let started = Instant::now();
     let target = &window.target;
     let path = db_path(&target.project);

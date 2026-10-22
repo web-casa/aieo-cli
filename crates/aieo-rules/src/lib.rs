@@ -305,9 +305,20 @@ pub fn check(site: &Site, opts: &Options) -> Outcome {
             .iter()
             .map(|f| f.fingerprint.as_str())
             .collect();
+        let baseline_rules = baseline.producer.rules_version.as_str();
         for f in &mut findings {
             f.status = if before.contains(f.fingerprint.as_str()) {
                 FindingStatus::Existing
+            } else if !spec().rule_existed_in(&f.rule, baseline_rules) {
+                // the rule came with an aieo upgrade: not a change of the
+                // site, so not "new" until the next snapshot
+                f.evidence.push(aieo_core::Evidence::new(
+                    aieo_core::Localized::new("Baseline", "基线"),
+                    format!(
+                        "rule added after the baseline's rules {baseline_rules}; not counted as new until the next `aieo snapshot`"
+                    ),
+                ));
+                FindingStatus::Unknown
             } else {
                 FindingStatus::New
             };

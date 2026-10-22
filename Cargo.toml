@@ -3,10 +3,10 @@ resolver = "2"
 members = ["crates/*"]
 
 [workspace.package]
-version = "0.4.0"
+version = "1.0.0"
 edition = "2021"
 license = "MIT"
-rust-version = "1.85"
+rust-version = "1.88"
 repository = "https://github.com/web-casa/aieo-cli"
 homepage = "https://aieo.ee"
 
@@ -42,6 +42,9 @@ getrandom = "0.4"
 base64 = "0.22"
 ring = "0.17"
 rpassword = "7.5"
+rmcp = { version = "3.6", features = ["server", "macros", "transport-io"] }
+schemars = "1"
+tokio = { version = "1", features = ["rt", "io-std"] }
 jsonschema = { version = "0.59", default-features = false }
 
 [profile.release]

@@ -1,0 +1,13 @@
+{
+  "name": "@aieo/cli",
+  "version": "0.0.0",
+  "description": "SEO/GEO checks for a site's build output, crawler logs and search engines — the inside view for aieo.ee",
+  "license": "MIT",
+  "homepage": "https://aieo.ee",
+  "repository": { "type": "git", "url": "git+https://github.com/web-casa/aieo-cli.git" },
+  "bin": { "aieo": "bin/aieo.js" },
+  "files": ["bin/aieo.js", "README.md"],
+  "engines": { "node": ">=18" },
+  "keywords": ["seo", "geo", "ai-search", "sitemap", "robots.txt", "llms.txt", "ci", "mcp"],
+  "optionalDependencies": {}
+}

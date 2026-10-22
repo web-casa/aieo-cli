@@ -1,0 +1,39 @@
+# aieo for GitLab CI. Include it, then extend `.aieo` in a job that runs
+# after the build and has the build directory (artifacts or the same job):
+#
+#   include:
+#     - remote: https://raw.githubusercontent.com/web-casa/aieo-cli/v1.0.0/ci/gitlab-ci.yml
+#
+#   aieo:
+#     extends: .aieo
+#     needs: [build]                 # the job that produces dist/
+#     variables:
+#       AIEO_COMMAND: diff           # check (gate on everything) or diff (gate on what is new)
+#
+# Findings appear in the merge request's test report (JUnit); the evidence
+# bundle is kept as an artifact. To upload it to aieo.ee, set a masked
+# AIEO_API_KEY variable and AIEO_PUSH: "true".
+
+.aieo:
+  image: debian:stable-slim
+  variables:
+    AIEO_VERSION: "1.0.0"
+    AIEO_COMMAND: check
+    AIEO_ARGS: ""
+    AIEO_PUSH: "false"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl ca-certificates >/dev/null
+    - curl -fsSL "https://raw.githubusercontent.com/web-casa/aieo-cli/v${AIEO_VERSION}/scripts/install.sh" | AIEO_VERSION="$AIEO_VERSION" AIEO_INSTALL_DIR=/usr/local/bin sh
+    - aieo --version
+  script:
+    - set +e
+    - aieo $AIEO_COMMAND $AIEO_ARGS --report junit=aieo-junit.xml --report bundle=.aieo/bundle.json.gz; code=$?
+    - set -e
+    - if [ "$AIEO_PUSH" = "true" ]; then aieo push --bundle .aieo/bundle.json.gz; fi
+    - exit $code
+  artifacts:
+    when: always
+    reports:
+      junit: aieo-junit.xml
+    paths:
+      - .aieo/bundle.json.gz

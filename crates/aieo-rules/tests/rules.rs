@@ -390,3 +390,47 @@ fn settings_override_tiers_switch_rules_and_suppress() {
         .unwrap();
     assert!(suppressed.suppressed.is_some());
 }
+
+#[test]
+fn an_upgrade_alone_never_fails_a_diff() {
+    let (_d, site) = build(&files());
+    let s = settings();
+    let first = check(
+        &site,
+        &Options {
+            settings: &s,
+            project: None,
+            rendering: None,
+            baseline: None,
+        },
+    );
+    // a baseline taken with rules 2.0.0 that had no findings at all
+    let mut baseline = baseline_from(&first);
+    baseline.findings.clear();
+    let o = check(
+        &site,
+        &Options {
+            settings: &s,
+            project: None,
+            rendering: None,
+            baseline: Some(&baseline),
+        },
+    );
+    let later: Vec<_> = o
+        .findings
+        .iter()
+        .filter(|f| !spec().rule_existed_in(&f.rule, "2.0.0"))
+        .collect();
+    assert!(!later.is_empty(), "the planted site trips rules added after 2.0.0");
+    for f in &later {
+        assert_eq!(f.status, FindingStatus::Unknown, "{}", f.rule);
+        assert!(f.evidence.iter().any(|e| e.detail.contains("added after the baseline")));
+    }
+    let only_later: Vec<_> = later.into_iter().cloned().collect();
+    let gate = aieo_core::config::parse_fail_on(&["new:notice".into()]).unwrap();
+    assert!(gate_passes(&only_later, &gate), "rules from an upgrade do not count as new");
+    assert!(o
+        .findings
+        .iter()
+        .any(|f| f.status == FindingStatus::New && spec().rule_existed_in(&f.rule, "2.0.0")));
+}

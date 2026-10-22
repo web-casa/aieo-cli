@@ -725,6 +725,28 @@ impl HostConfig {
         out
     }
 
+    /// Rewrites that apply only when no file answers (status 200, unforced).
+    pub fn rewrite_list(list: Vec<(String, String, RuleSource)>) -> HostConfig {
+        let mut out = HostConfig::default();
+        for (from, to, source) in list {
+            let Some(pattern) = Pattern::route(&from) else {
+                out.skipped += 1;
+                continue;
+            };
+            out.redirects.rules.push(Redirect {
+                pattern,
+                fixed: !from.contains([':', '(', '*']),
+                from,
+                to,
+                status: 200,
+                force: false,
+                internal: false,
+                source,
+            });
+        }
+        out
+    }
+
     /// `netlify.toml` `[[redirects]]` / `[[headers]]` (same patterns as `_redirects`).
     pub fn netlify(text: &str, file: &str) -> Option<HostConfig> {
         let doc: toml::Table = toml::from_str(text).ok()?;

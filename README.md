@@ -23,7 +23,21 @@ aieo logs report                # coverage, verification, blocking, errors, AI r
 aieo search google inspect      # Google's view of the build's pages (URL Inspection)
 aieo indexnow submit --yes      # tell Bing & co. what changed since the baseline
 aieo login && aieo push         # upload the bundle to the aieo.ee project
+aieo mcp                        # the same checks as read-only MCP tools for AI agents
 ```
+
+## Install
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/web-casa/aieo-cli/main/scripts/install.sh | sh
+```
+
+Static binaries for Linux (x86_64, aarch64), macOS (Apple silicon, Intel)
+and Windows are attached to each [GitHub release](https://github.com/web-casa/aieo-cli/releases),
+with a `.sha256` next to each; `install.sh` verifies it and installs to
+`~/.local/bin` (`AIEO_VERSION=1.0.0` pins a release, `AIEO_INSTALL_DIR`
+changes the directory). From source: `cargo install --git https://github.com/web-casa/aieo-cli aieo-cli`
+(Rust 1.88+).
 
 ## Frameworks
 
@@ -215,16 +229,32 @@ bing_site = "https://example.com/"
 
 [indexnow]
 key = "…"                        # public; served as /<key>.txt
+
+[[hosting.rewrites]]             # routing the build cannot show (middleware, edge functions)
+from = "/:path*"
+to = "/en/:path*"
+
+[[hosting.redirects]]
+from = "/old/:slug"
+to = "/new/:slug"
+status = 301
 ```
+
+`[[hosting.*]]` rules apply after the ones the build and the host config
+declare; use them when routing lives in code (Next.js middleware, an edge
+function) so that links into rewritten paths are not reported as broken.
 
 ## CI
 
 ```yaml
 - run: npm run build
-- uses: web-casa/aieo-cli@v0.4     # composite action, see action.yml
+- uses: web-casa/aieo-cli@v1       # composite action, see action.yml
   with:
+    version: 1.0.0                 # prebuilt binary; the default "source" builds with cargo
     command: diff                  # or check
     upload-sarif: "true"           # GitHub code scanning (security-events: write)
+    # push: "true"                 # upload the bundle to aieo.ee (aieo-api-key: ${{ secrets.AIEO_API_KEY }})
+    # indexnow: "true"             # submit what changed since the baseline
 ```
 
 Findings appear as annotations on the pull request, a Markdown summary is
@@ -232,15 +262,46 @@ added to the job summary, SARIF and the evidence bundle are written next to
 the project. Without the action:
 `aieo diff --format github --report sarif=aieo.sarif --report bundle=.aieo/bundle.json.gz`.
 
+GitLab: include [`ci/gitlab-ci.yml`](ci/gitlab-ci.yml) and extend `.aieo`;
+findings show as a JUnit test report on the merge request.
+
+## AI agents (MCP and skill)
+
+`aieo mcp -C <project>` is an MCP server on stdio with read-only tools:
+`check`, `diff`, `page`, `explain_rule`, `list_rules`, `logs_report`,
+`logs_gaps`, `search_report`, `indexnow_plan`, `push_plan`. Nothing that
+writes outside the machine is a tool — the `*_plan` tools show what
+`aieo indexnow submit --yes` or `aieo push` would do, for the user to run.
+
+```sh
+claude mcp add aieo -- aieo mcp -C .                  # Claude Code
+codex mcp add aieo -- aieo mcp -C .                   # Codex
+```
+
+Any client that runs stdio servers takes `{"command": "aieo", "args":
+["mcp", "-C", "."]}`. [`skills/aieo/SKILL.md`](skills/aieo/SKILL.md)
+teaches an agent the fix loop (check → edit the source file → rebuild →
+check); copy it into the agent's skills directory (`~/.claude/skills/aieo/`
+for Claude Code). It is also attached to each release.
+
 ## Output and data
 
-`--format pretty | json | sarif | github | markdown`, plus any number of
+`--format pretty | json | sarif | github | markdown | junit`, plus any number of
 `--report FORMAT=PATH` (`bundle` = gzip JSON). JSON and the bundle are
 `aieo-bundle/v1` (`spec/bundle.schema.json`): findings, page inventory,
 readiness and multi-page scores — never page source, raw logs or IP
 addresses. Configuration findings carry the config file and line
 (`astro.config.mjs:4`, `vercel.json:12`), so SARIF and GitHub annotations
 land on the setting to change.
+
+## Rule versions
+
+Rules come from [`@aieo/rules`](spec/SOURCE.json) (embedded in the binary):
+a patch release changes wording or fixes a false positive, a minor release
+adds rules, a major release changes what an existing rule means. Rule ids
+are never reused. A finding from a rule added after the baseline was taken
+is reported as `unknown`, not `new`, so upgrading `aieo` alone never fails
+`aieo diff`; take a new snapshot to adopt it.
 
 ## Development
 

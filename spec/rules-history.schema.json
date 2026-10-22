@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aieo.ee/schemas/rules-history.schema.json",
+  "title": "Every rule id @aieo/rules has shipped",
+  "description": "A rule id is never reused. A removed rule stays here with `retired`; `since` is the spec version that introduced it.",
+  "type": "object",
+  "required": [
+    "rules"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "since"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "since": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "retired": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "replaced_by": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

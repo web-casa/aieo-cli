@@ -3,6 +3,7 @@
 //! Markdown summary.
 
 pub mod github;
+pub mod junit;
 pub mod markdown;
 pub mod pretty;
 pub mod sarif;

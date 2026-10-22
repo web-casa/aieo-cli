@@ -18,7 +18,7 @@ pub struct OverviewDay {
 
 pub fn decode(bytes: &[u8]) -> Result<String> {
     let utf16 = |b: &[u8], le: bool| -> Result<String> {
-        if b.len() % 2 != 0 {
+        if !b.len().is_multiple_of(2) {
             bail!("the file is not valid UTF-16");
         }
         let units: Vec<u16> = b

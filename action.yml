@@ -34,11 +34,20 @@ inputs:
     description: Path to write the aieo-bundle/v1 evidence file to; empty to skip
     default: .aieo/bundle.json.gz
   version:
-    description: aieo-cli release to install (e.g. 0.4.0), or "source" to build from this action's ref
+    description: aieo-cli release to install (e.g. 1.0.0), or "source" to build from this action's ref
     default: source
   repository:
     description: Repository the releases are downloaded from
     default: web-casa/aieo-cli
+  push:
+    description: "Upload the evidence bundle to aieo.ee (needs aieo-api-key and [aieo] project in aieo.toml)"
+    default: "false"
+  aieo-api-key:
+    description: aieo.ee API key with write access — pass a secret, e.g. ${{ secrets.AIEO_API_KEY }}
+    default: ""
+  indexnow:
+    description: "Submit the pages changed since the baseline to IndexNow (needs [indexnow] key in aieo.toml and the key file deployed); typically only on the default branch after deploying"
+    default: "false"
 
 outputs:
   exit-code:
@@ -93,6 +102,23 @@ runs:
       with:
         sarif_file: ${{ steps.run.outputs.sarif }}
         category: aieo
+
+    - name: Upload to aieo.ee
+      if: ${{ always() && inputs.push == 'true' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        AIEO_API_KEY: ${{ inputs.aieo-api-key }}
+        BUNDLE: ${{ inputs.bundle }}
+      run: |
+        if [ -z "$AIEO_API_KEY" ]; then echo "::error::push needs the aieo-api-key input"; exit 1; fi
+        if [ -n "$BUNDLE" ] && [ -f "$BUNDLE" ]; then aieo push --bundle "$BUNDLE"; else aieo push; fi
+
+    - name: IndexNow
+      if: ${{ inputs.indexnow == 'true' && env.AIEO_EXIT == '0' }}
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: aieo indexnow submit --yes
 
     - name: Gate
       shell: bash

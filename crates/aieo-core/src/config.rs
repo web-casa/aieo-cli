@@ -29,6 +29,15 @@
 //!
 //! [indexnow]
 //! key = "…"                      # public; its key file is served at /<key>.txt
+//!
+//! # what middleware or the host does that no file in the build says
+//! [[hosting.rewrites]]           # applies when no file answers the path
+//! from = "/docs/:path*"
+//! to = "/en/docs/:path*"
+//! [[hosting.redirects]]          # applies before any file
+//! from = "/old"
+//! to = "/new"
+//! status = 301
 //! ```
 
 use std::collections::{BTreeMap, HashMap};
@@ -63,6 +72,28 @@ pub struct Config {
     pub search: SearchConfig,
     #[serde(default)]
     pub indexnow: IndexNowConfig,
+    #[serde(default)]
+    pub hosting: HostingConfig,
+}
+
+/// Rules middleware or the host applies that the build cannot show
+/// (path-to-regexp sources: `:name`, `:name*`, `(regex)`).
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HostingConfig {
+    #[serde(default)]
+    pub rewrites: Vec<HostRule>,
+    #[serde(default)]
+    pub redirects: Vec<HostRule>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct HostRule {
+    pub from: String,
+    pub to: String,
+    /// redirects only (default 308)
+    pub status: Option<u16>,
 }
 
 #[derive(Debug, Default, Deserialize)]

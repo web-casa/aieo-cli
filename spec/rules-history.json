@@ -1,0 +1,433 @@
+{
+  "$schema": "./rules-history.schema.json",
+  "rules": [
+    {
+      "id": "F01",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F02",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F03",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F04",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F05",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F06",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F07",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F08",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F09",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F10",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F11",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F12",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F13",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F14",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F15",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F16",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F17",
+      "since": "2.0.0"
+    },
+    {
+      "id": "F18",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G01",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G02",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G03",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G04",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G05",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G06",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G07",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G08",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G09",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G10",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G11",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G12",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G13",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G14",
+      "since": "2.0.0"
+    },
+    {
+      "id": "G15",
+      "since": "2.0.0"
+    },
+    {
+      "id": "H01",
+      "since": "2.0.0"
+    },
+    {
+      "id": "H02",
+      "since": "2.0.0"
+    },
+    {
+      "id": "H03",
+      "since": "2.0.0"
+    },
+    {
+      "id": "H04",
+      "since": "2.0.0"
+    },
+    {
+      "id": "P01",
+      "since": "2.1.0"
+    },
+    {
+      "id": "P02",
+      "since": "2.1.0"
+    },
+    {
+      "id": "P03",
+      "since": "2.1.0"
+    },
+    {
+      "id": "P04",
+      "since": "2.1.0"
+    },
+    {
+      "id": "T-MISSING-TITLE",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-DUPLICATE-TITLE",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-MISSING-META-DESCRIPTION",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-MISSING-H1",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-MULTIPLE-H1",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-MISSING-LANG",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-MISSING-CANONICAL",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-IMAGES-MISSING-ALT",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-JSONLD-INVALID",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-THIN-CONTENT",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-TITLE-LENGTH",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-HTML-SIZE",
+      "since": "2.0.0"
+    },
+    {
+      "id": "T-JSONLD-RETIRED-TYPE",
+      "since": "2.1.0"
+    },
+    {
+      "id": "T-JSONLD-MISSING-REQUIRED",
+      "since": "2.1.0"
+    },
+    {
+      "id": "T-JSONLD-NO-CONTEXT",
+      "since": "2.1.0"
+    },
+    {
+      "id": "C-SITEMAP-URL-MISSING",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-SITEMAP-URL-NOINDEX",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-SITEMAP-URL-NONCANONICAL",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-SITEMAP-FOREIGN-HOST",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-SITEMAP-ROBOTS-BLOCKED",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-SITEMAP-UNDECLARED",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-PAGE-NOT-IN-SITEMAP",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-CANONICAL-FOREIGN-HOST",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-CANONICAL-TARGET-MISSING",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-CANONICAL-TARGET-NOINDEX",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-CANONICAL-CHAIN",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-HREFLANG-TARGET-MISSING",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-HREFLANG-NOT-RECIPROCAL",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-HREFLANG-INVALID-CODE",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-HREFLANG-SELF-MISSING",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-LINK-BROKEN",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-ORPHAN-PAGE",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-LLMS-LINK-BROKEN",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-LLMS-LINK-NOINDEX",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-MD-ALTERNATE-MISSING",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-ROBOTS-BLOCKS-ALL",
+      "since": "2.0.0"
+    },
+    {
+      "id": "C-ROBOTS-AI-SEARCH-BLOCKED",
+      "since": "2.0.0"
+    },
+    {
+      "id": "K-SITE-ORIGIN-MISMATCH",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-BASE-PATH-MISMATCH",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-TRAILING-SLASH-MISMATCH",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-REDIRECT-LOOP",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-REDIRECT-CHAIN",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-REDIRECT-TARGET-MISSING",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-HEADERS-NOINDEX",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-EXPORT-IGNORED-CONFIG",
+      "since": "2.1.0"
+    },
+    {
+      "id": "K-SPA-SHELL",
+      "since": "2.1.0"
+    },
+    {
+      "id": "D-PAGE-REMOVED",
+      "since": "2.0.0"
+    },
+    {
+      "id": "D-PAGE-NOINDEXED",
+      "since": "2.0.0"
+    },
+    {
+      "id": "D-CANONICAL-CHANGED",
+      "since": "2.0.0"
+    },
+    {
+      "id": "D-HREFLANG-LOST",
+      "since": "2.0.0"
+    },
+    {
+      "id": "D-JSONLD-TYPE-LOST",
+      "since": "2.0.0"
+    },
+    {
+      "id": "D-CONTENT-SHRUNK",
+      "since": "2.0.0"
+    },
+    {
+      "id": "D-SITEMAP-URL-DROPPED",
+      "since": "2.0.0"
+    },
+    {
+      "id": "D-INDEXABLE-DROP",
+      "since": "2.0.0"
+    },
+    {
+      "id": "L-BOT-BLOCKED",
+      "since": "2.2.0"
+    },
+    {
+      "id": "L-BOT-SERVER-ERRORS",
+      "since": "2.2.0"
+    },
+    {
+      "id": "L-ROBOTS-TXT-UNAVAILABLE",
+      "since": "2.2.0"
+    },
+    {
+      "id": "L-404-SPIKE",
+      "since": "2.2.0"
+    },
+    {
+      "id": "L-SPOOFED-BOT",
+      "since": "2.2.0"
+    },
+    {
+      "id": "L-DISALLOWED-CRAWLED",
+      "since": "2.2.0"
+    },
+    {
+      "id": "L-AI-SEARCH-COVERAGE-LOW",
+      "since": "2.2.0"
+    },
+    {
+      "id": "S-NOT-INDEXED",
+      "since": "2.3.0"
+    },
+    {
+      "id": "S-CANONICAL-OVERRIDDEN",
+      "since": "2.3.0"
+    },
+    {
+      "id": "S-LIVE-DIFFERS",
+      "since": "2.3.0"
+    },
+    {
+      "id": "S-CLICKS-DROPPED",
+      "since": "2.3.0"
+    },
+    {
+      "id": "S-INDEXNOW-KEY-INVALID",
+      "since": "2.3.0"
+    }
+  ]
+}

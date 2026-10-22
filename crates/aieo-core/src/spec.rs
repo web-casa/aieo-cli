@@ -100,6 +100,31 @@ struct ReferrersFile {
     platforms: Vec<AiPlatform>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct RuleHistory {
+    pub id: String,
+    pub since: String,
+    #[serde(default)]
+    pub retired: Option<String>,
+    #[serde(default)]
+    pub replaced_by: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct HistoryFile {
+    rules: Vec<RuleHistory>,
+}
+
+/// `2.10.1` → (2, 10, 1); anything else → (0, 0, 0).
+pub fn semver(v: &str) -> (u64, u64, u64) {
+    let mut it = v.split('.').map(|p| p.parse().unwrap_or(0));
+    (
+        it.next().unwrap_or(0),
+        it.next().unwrap_or(0),
+        it.next().unwrap_or(0),
+    )
+}
+
 #[derive(Debug, Deserialize)]
 struct RulesFile {
     version: String,
@@ -125,6 +150,8 @@ pub struct Spec {
     pub crawlers: Vec<CrawlerSpec>,
     pub referrers_version: String,
     pub ai_platforms: Vec<AiPlatform>,
+    /// every rule id ever shipped, with the spec version that introduced it
+    pub history: Vec<RuleHistory>,
     /// content hash of the exported `@aieo/rules` files (spec/SOURCE.json)
     pub source_sha256: String,
 }
@@ -141,6 +168,14 @@ impl Spec {
             .unwrap_or_else(|| panic!("rule {id} is not in spec/rules.json"))
     }
 
+    /// Whether `rule` existed in spec version `version` (unknown ids: false).
+    pub fn rule_existed_in(&self, rule: &str, version: &str) -> bool {
+        self.history
+            .iter()
+            .find(|h| h.id == rule)
+            .is_some_and(|h| semver(&h.since) <= semver(version))
+    }
+
     /// robots.txt token → F03 category, in catalog order.
     pub fn f03_matrix(&self) -> impl Iterator<Item = (&str, &str)> {
         self.crawlers.iter().filter_map(|c| {
@@ -154,6 +189,7 @@ impl Spec {
 pub const RULES_JSON: &str = include_str!("../../../spec/rules.json");
 pub const CRAWLERS_JSON: &str = include_str!("../../../spec/crawlers.json");
 pub const AI_REFERRERS_JSON: &str = include_str!("../../../spec/ai-referrers.json");
+pub const RULES_HISTORY_JSON: &str = include_str!("../../../spec/rules-history.json");
 pub const BUNDLE_SCHEMA_JSON: &str = include_str!("../../../spec/bundle.schema.json");
 const SOURCE_JSON: &str = include_str!("../../../spec/SOURCE.json");
 
@@ -165,6 +201,8 @@ pub fn spec() -> &'static Spec {
             serde_json::from_str(CRAWLERS_JSON).expect("spec/crawlers.json");
         let referrers: ReferrersFile =
             serde_json::from_str(AI_REFERRERS_JSON).expect("spec/ai-referrers.json");
+        let history: HistoryFile =
+            serde_json::from_str(RULES_HISTORY_JSON).expect("spec/rules-history.json");
         let source: SourceFile = serde_json::from_str(SOURCE_JSON).expect("spec/SOURCE.json");
         Spec {
             rules_version: rules.version,
@@ -173,6 +211,7 @@ pub fn spec() -> &'static Spec {
             crawlers: crawlers.crawlers,
             referrers_version: referrers.version,
             ai_platforms: referrers.platforms,
+            history: history.rules,
             source_sha256: source.sha256,
         }
     })
@@ -191,5 +230,9 @@ mod tests {
         assert_eq!(s.f03_matrix().next(), Some(("oai-searchbot", "search")));
         assert_eq!(s.source_sha256.len(), 64);
         assert!(s.ai_platforms.iter().any(|p| p.id == "chatgpt"));
+        assert!(s.rule_existed_in("C-LINK-BROKEN", "2.0.0"));
+        assert!(!s.rule_existed_in("S-NOT-INDEXED", "2.2.0"));
+        assert!(s.rule_existed_in("S-NOT-INDEXED", "2.10.0"), "numeric, not lexical");
+        assert_eq!(s.history.len(), s.rules.len());
     }
 }
