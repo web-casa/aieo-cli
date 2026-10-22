@@ -1,0 +1,39 @@
+{
+  "name": "aieo",
+  "version": "1.1.0",
+  "description": "Check a site's build output for SEO and AI-search defects and fix them in the source files; read crawler logs and Search Console data against the build. Needs the aieo CLI on PATH.",
+  "author": {
+    "name": "Web-Casa",
+    "url": "https://aieo.ee"
+  },
+  "homepage": "https://github.com/web-casa/aieo-cli",
+  "repository": "https://github.com/web-casa/aieo-cli",
+  "license": "MIT",
+  "keywords": [
+    "seo",
+    "geo",
+    "ai-search",
+    "sitemap",
+    "llms.txt",
+    "structured-data"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "aieo",
+    "shortDescription": "SEO and AI-search checks for a site's build, fixed in the source",
+    "longDescription": "aieo reads what the build produced and what the framework and host declare, and reports defects with the build file and the source file to change: sitemap, robots.txt, canonical, hreflang, broken links, llms.txt, structured data, trailing slash and redirects. It also reads crawler access logs and Search Console / Bing data against the build. Every tool is read-only; IndexNow submissions and uploads are returned as plans for you to run.",
+    "developerName": "Web-Casa",
+    "category": "Coding",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Check this site's build for SEO and AI-search problems and fix them",
+      "Set up an aieo check in CI that fails only on new problems",
+      "Do AI crawlers reach my pages? Read the access logs"
+    ],
+    "websiteURL": "https://github.com/web-casa/aieo-cli",
+    "logo": "./assets/icon.png"
+  }
+}

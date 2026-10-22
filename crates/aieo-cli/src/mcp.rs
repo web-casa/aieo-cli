@@ -31,6 +31,9 @@ pub struct Aieo {
 
 #[derive(Debug, Default, Deserialize, JsonSchema)]
 pub struct CheckParams {
+    /// Project directory: absolute, or relative to the directory the server runs in
+    /// (default: that directory). For a monorepo, the site's package.
+    pub project: Option<String>,
     /// Build directory relative to the project (default: aieo.toml or the framework's)
     pub dist: Option<String>,
     /// Production origin, e.g. https://example.com (default: aieo.toml / framework config)
@@ -47,6 +50,9 @@ pub struct CheckParams {
 
 #[derive(Debug, Deserialize, JsonSchema)]
 pub struct PageParams {
+    /// Project directory: absolute, or relative to the directory the server runs in
+    /// (default: that directory). For a monorepo, the site's package.
+    pub project: Option<String>,
     /// URL or path of the page, e.g. /guide/ or https://example.com/guide/
     pub url: String,
     pub dist: Option<String>,
@@ -67,6 +73,9 @@ pub struct RulesParams {
 
 #[derive(Debug, Default, Deserialize, JsonSchema)]
 pub struct LogsParams {
+    /// Project directory: absolute, or relative to the directory the server runs in
+    /// (default: that directory). For a monorepo, the site's package.
+    pub project: Option<String>,
     /// Days back from the newest logged request (default 30)
     pub since_days: Option<u32>,
     /// For gaps: search_index (default), classic_search, user_fetch or training
@@ -75,8 +84,18 @@ pub struct LogsParams {
 
 #[derive(Debug, Default, Deserialize, JsonSchema)]
 pub struct SearchParams {
+    /// Project directory: absolute, or relative to the directory the server runs in
+    /// (default: that directory). For a monorepo, the site's package.
+    pub project: Option<String>,
     /// Days in the window (default 28)
     pub days: Option<i64>,
+}
+
+#[derive(Debug, Default, Deserialize, JsonSchema)]
+pub struct ProjectParams {
+    /// Project directory: absolute, or relative to the directory the server runs in
+    /// (default: that directory). For a monorepo, the site's package.
+    pub project: Option<String>,
 }
 
 fn tier_of(s: &str) -> Option<Tier> {
@@ -168,10 +187,18 @@ fn pretty(v: Value) -> String {
 }
 
 impl Aieo {
-    fn target(&self, dist: Option<&str>, site: Option<&str>) -> Target {
+    fn dir(&self, project: Option<&str>) -> PathBuf {
+        match project {
+            Some(p) if !p.is_empty() => self.root.join(p),
+            _ => self.root.clone(),
+        }
+    }
+
+    fn target(&self, project: Option<&str>, dist: Option<&str>, site: Option<&str>) -> Target {
+        let root = self.dir(project);
         Target {
-            dist: dist.map(|d| self.root.join(d)),
-            project: self.root.clone(),
+            dist: dist.map(|d| root.join(d)),
+            project: root,
             site: site.map(String::from),
             preset: None,
             config: None,
@@ -204,7 +231,7 @@ impl Aieo {
     /// with the build file and source file to change. Build the site first.
     #[tool(annotations(title = "Check the build", read_only_hint = true))]
     async fn check(&self, Parameters(p): Parameters<CheckParams>) -> Result<String, String> {
-        let target = self.target(p.dist.as_deref(), p.site.as_deref());
+        let target = self.target(p.project.as_deref(), p.dist.as_deref(), p.site.as_deref());
         blocking(move || {
             let run = run_check(&target, None, Vec::new(), "check")?;
             let (shown, total) = filtered(&run.bundle.findings, &p);
@@ -222,8 +249,8 @@ impl Aieo {
     /// Compare the build with the baseline (`aieo snapshot`): findings that are new, and those fixed.
     #[tool(annotations(title = "Diff against the baseline", read_only_hint = true))]
     async fn diff(&self, Parameters(p): Parameters<CheckParams>) -> Result<String, String> {
-        let target = self.target(p.dist.as_deref(), p.site.as_deref());
-        let root = self.root.clone();
+        let target = self.target(p.project.as_deref(), p.dist.as_deref(), p.site.as_deref());
+        let root = self.dir(p.project.as_deref());
         blocking(move || {
             let (config, _) = Config::load_or_default(&root)?;
             let baseline = load_baseline(None, config.check.baseline.as_deref(), &root, false)?
@@ -261,7 +288,7 @@ impl Aieo {
     /// sitemap, inbound links, source file) and its findings.
     #[tool(annotations(title = "One page", read_only_hint = true))]
     async fn page(&self, Parameters(p): Parameters<PageParams>) -> Result<String, String> {
-        let target = self.target(p.dist.as_deref(), p.site.as_deref());
+        let target = self.target(p.project.as_deref(), p.dist.as_deref(), p.site.as_deref());
         blocking(move || {
             let run = run_check(&target, None, Vec::new(), "check")?;
             let origin = run.bundle.site.origin.clone();
@@ -338,7 +365,7 @@ impl Aieo {
     #[tool(annotations(title = "Access-log report", read_only_hint = true))]
     async fn logs_report(&self, Parameters(p): Parameters<LogsParams>) -> Result<String, String> {
         let window = crate::logs::Window {
-            target: self.target(None, None),
+            target: self.target(p.project.as_deref(), None, None),
             since: format!("{}d", p.since_days.unwrap_or(30)),
         };
         blocking(move || {
@@ -366,7 +393,7 @@ impl Aieo {
     #[tool(annotations(title = "Crawl gaps", read_only_hint = true))]
     async fn logs_gaps(&self, Parameters(p): Parameters<LogsParams>) -> Result<String, String> {
         let window = crate::logs::Window {
-            target: self.target(None, None),
+            target: self.target(p.project.as_deref(), None, None),
             since: format!("{}d", p.since_days.unwrap_or(30)),
         };
         let actor = p.actor.unwrap_or_else(|| "search_index".into());
@@ -389,7 +416,7 @@ impl Aieo {
         &self,
         Parameters(p): Parameters<SearchParams>,
     ) -> Result<String, String> {
-        let target = self.target(None, None);
+        let target = self.target(p.project.as_deref(), None, None);
         let days = p.days.unwrap_or(28);
         blocking(move || {
             let Some((search, findings, _)) = crate::search::build(&target, days)? else {
@@ -406,9 +433,12 @@ impl Aieo {
     /// The URLs an IndexNow submission would send (new, changed and removed pages since the
     /// baseline). Sends nothing: a person runs the returned command.
     #[tool(annotations(title = "IndexNow plan", read_only_hint = true))]
-    async fn indexnow_plan(&self) -> Result<String, String> {
-        let target = self.target(None, None);
-        let root = self.root.clone();
+    async fn indexnow_plan(
+        &self,
+        Parameters(p): Parameters<ProjectParams>,
+    ) -> Result<String, String> {
+        let target = self.target(p.project.as_deref(), None, None);
+        let root = self.dir(p.project.as_deref());
         blocking(move || {
             let (config, _) = Config::load_or_default(&root)?;
             let baseline = load_baseline(None, config.check.baseline.as_deref(), &root, false)?
@@ -429,9 +459,9 @@ impl Aieo {
 
     /// What `aieo push` would upload to aieo.ee (evidence kinds, findings, project). Uploads nothing.
     #[tool(annotations(title = "Upload plan", read_only_hint = true))]
-    async fn push_plan(&self) -> Result<String, String> {
-        let target = self.target(None, None);
-        let root = self.root.clone();
+    async fn push_plan(&self, Parameters(p): Parameters<ProjectParams>) -> Result<String, String> {
+        let target = self.target(p.project.as_deref(), None, None);
+        let root = self.dir(p.project.as_deref());
         blocking(move || {
             let (config, _) = Config::load_or_default(&root)?;
             let run = run_check(&target, None, Vec::new(), "check")?;

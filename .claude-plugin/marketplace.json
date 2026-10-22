@@ -1,0 +1,21 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "aieo",
+  "owner": {
+    "name": "Web-Casa",
+    "url": "https://aieo.ee"
+  },
+  "metadata": {
+    "description": "SEO and AI-search checks for a site's build output"
+  },
+  "plugins": [
+    {
+      "name": "aieo",
+      "source": "./plugins/aieo",
+      "description": "Check a site's build for SEO and AI-search defects and fix them in the source files; read crawler logs and Search Console data against the build. Read-only MCP tools and skills for the aieo CLI.",
+      "category": "development",
+      "homepage": "https://github.com/web-casa/aieo-cli",
+      "license": "MIT"
+    }
+  ]
+}

@@ -250,7 +250,7 @@ function) so that links into rewritten paths are not reported as broken.
 - run: npm run build
 - uses: web-casa/aieo-cli@v1       # composite action, see action.yml
   with:
-    version: 1.0.0                 # prebuilt binary; the default "source" builds with cargo
+    version: 1.1.0                 # prebuilt binary; the default "source" builds with cargo
     command: diff                  # or check
     upload-sarif: "true"           # GitHub code scanning (security-events: write)
     # push: "true"                 # upload the bundle to aieo.ee (aieo-api-key: ${{ secrets.AIEO_API_KEY }})
@@ -265,24 +265,29 @@ the project. Without the action:
 GitLab: include [`ci/gitlab-ci.yml`](ci/gitlab-ci.yml) and extend `.aieo`;
 findings show as a JUnit test report on the merge request.
 
-## AI agents (MCP and skill)
+## AI agents (plugin, skills, MCP)
 
-`aieo mcp -C <project>` is an MCP server on stdio with read-only tools:
-`check`, `diff`, `page`, `explain_rule`, `list_rules`, `logs_report`,
-`logs_gaps`, `search_report`, `indexnow_plan`, `push_plan`. Nothing that
-writes outside the machine is a tool — the `*_plan` tools show what
+The `aieo` binary must be on `PATH` (see Install). Then:
+
+| Agent | Install |
+|---|---|
+| Claude Code | `/plugin marketplace add web-casa/aieo-cli`, then `/plugin install aieo@aieo` |
+| Codex | `codex plugin marketplace add web-casa/aieo-cli`, then `codex plugin add aieo@aieo` |
+| Any agent with skills (OpenClaw, Hermes, Cursor, …) | `npx skills add web-casa/aieo-cli` |
+| Claude Desktop and other MCPB hosts | open `aieo-v<version>.mcpb` from the [release](https://github.com/web-casa/aieo-cli/releases) and choose the site's directory |
+| Any MCP client | `{"command": "aieo", "args": ["mcp"]}`, started in the project directory |
+
+The plugin brings five skills — `aieo` (check → edit the source file →
+rebuild → check), `aieo-ci`, `aieo-crawlers`, `aieo-indexing`,
+`aieo-llms-txt` ([plugins/aieo/skills](plugins/aieo/skills)) — and the MCP
+server.
+
+`aieo mcp` serves read-only tools over stdio: `check`, `diff`, `page`,
+`explain_rule`, `list_rules`, `logs_report`, `logs_gaps`, `search_report`,
+`indexnow_plan`, `push_plan`. Each takes an optional `project` (a directory
+relative to where the server runs) for one site in a monorepo. Nothing
+that writes outside the machine is a tool — the `*_plan` tools show what
 `aieo indexnow submit --yes` or `aieo push` would do, for the user to run.
-
-```sh
-claude mcp add aieo -- aieo mcp -C .                  # Claude Code
-codex mcp add aieo -- aieo mcp -C .                   # Codex
-```
-
-Any client that runs stdio servers takes `{"command": "aieo", "args":
-["mcp", "-C", "."]}`. [`skills/aieo/SKILL.md`](skills/aieo/SKILL.md)
-teaches an agent the fix loop (check → edit the source file → rebuild →
-check); copy it into the agent's skills directory (`~/.claude/skills/aieo/`
-for Claude Code). It is also attached to each release.
 
 ## Output and data
 

@@ -1,5 +1,6 @@
-//! `aieo mcp` over stdio: the handshake, read-only tools, a check and a
-//! tool error that tells the agent what to run.
+//! `aieo mcp` over stdio: the handshake, read-only tools, a check, a check
+//! of another project in a monorepo, and a tool error that tells the agent
+//! what to run.
 
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
@@ -22,6 +23,16 @@ fn serves_read_only_tools_over_stdio() {
         p,
         "dist/index.html",
         r#"<!doctype html><html lang="en"><head><title>Home page</title><link rel="canonical" href="https://t.example/"></head><body><nav><a href="/missing/">x</a></nav><h1>Home</h1></body></html>"#,
+    );
+    write(
+        p,
+        "apps/docs/aieo.toml",
+        "site = \"https://docs.t.example\"\n",
+    );
+    write(
+        p,
+        "apps/docs/dist/index.html",
+        r#"<!doctype html><html lang="en"><head><title>Docs home</title></head><body><h1>Docs</h1></body></html>"#,
     );
     let mut child = Command::new(env!("CARGO_BIN_EXE_aieo"))
         .args(["mcp", "-C"])
@@ -72,6 +83,12 @@ fn serves_read_only_tools_over_stdio() {
     assert_eq!(f["rule"], "C-LINK-BROKEN");
     assert_eq!(f["build_file"], "dist/index.html:1");
     assert!(f["why"].as_str().unwrap().contains("internal link"));
+
+    let docs = call(json!({"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"check","arguments":{"project":"apps/docs"}}})).unwrap();
+    let body: Value =
+        serde_json::from_str(docs["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+    assert_eq!(body["site"], "https://docs.t.example");
+    assert_eq!(body["pages"], 1);
 
     let logs = call(json!({"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"logs_report","arguments":{}}})).unwrap();
     assert_eq!(logs["result"]["isError"], true);

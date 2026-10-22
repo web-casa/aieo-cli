@@ -417,13 +417,20 @@ aieo-cli/ (cargo workspace, MIT)
 
 ### 1.0 已完成
 - `aieo mcp`：基于 rmcp 的 stdio MCP 服务，10 个只读工具；写操作只提供 `*_plan`。
-- `skills/aieo/SKILL.md`：Agent 修复循环，随 release 附带。
+- `SKILL.md`：Agent 修复循环，随 release 附带（1.1 起移到 `plugins/aieo/skills/aieo/`）。
 - `--format junit` 与 GitLab 模板 `ci/gitlab-ci.yml`；Action 新增 `push`、`aieo-api-key`、`indexnow` 输入。
 - `aieo.toml` 的 `[[hosting.rewrites]]` / `[[hosting.redirects]]`：描述构建看不到的路由（Next 中间件等）。在 aieo.ee 自身构建上，277 个断链误报降为 0。
 - 规则版本策略：`@aieo/rules` 2.4.1 起附 `rules-history.json`；基线之后新增规则的发现记为 `unknown`，升级不会让 `diff` 失败。
 - 发布：musl 静态 Linux、macOS 双架构、Windows；`install.sh` 校验 sha256。npm 与 Homebrew 的打包已就绪，但首发只走 GitHub Release（缺 token 时对应 job 跳过）。
 - aieo.ee 文档站新增中英 CLI 文档（`/docs/cli`），规则参考页由 `@aieo/rules` 生成。
 - 分发与增长另见 [`ecosystem-and-growth.md`](ecosystem-and-growth.md)。
+
+### 1.1 已完成（Agent 分发，只依赖 GitHub）
+- 仓库本身即插件市场：`plugins/aieo/` 同时供 Claude Code（`.claude-plugin/marketplace.json`）与 Codex（`.agents/plugins/marketplace.json`）安装，含 5 个技能与 MCP 服务；`claude plugin validate` 通过，两边均在隔离配置中实测安装，Claude Code 中 MCP 连接成功。
+- 技能拆为 5 个：`aieo`（修复循环）、`aieo-ci`、`aieo-crawlers`、`aieo-indexing`、`aieo-llms-txt`；`npx skills add web-casa/aieo-cli` 可发现全部。
+- MCP 工具均新增可选参数 `project`，一个服务可检查 monorepo 中的多个站点（MCP roots 已被 SEP-2577 弃用，未采用）。
+- Release 新增：跨平台 MCP Bundle（`aieo-v<版本>.mcpb`，macOS 通用二进制 + Linux x86_64 + Windows x64，工具清单由 `aieo mcp` 生成）、`server.json`、`aieo-skills.zip`。
+- MCP Registry（`io.github.web-casa/aieo`，GitHub OIDC）发布 job 已就绪，仓库变量 `MCP_REGISTRY_PUBLISH=true` 时才运行。
 
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。

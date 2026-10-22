@@ -83,7 +83,13 @@ them:
 
 ## MCP
 
-`aieo mcp -C <project>` serves the same checks as read-only tools
-(`check`, `diff`, `page`, `explain_rule`, `list_rules`, `logs_report`,
-`logs_gaps`, `search_report`, `indexnow_plan`, `push_plan`). For Claude
-Code: `claude mcp add aieo -- aieo mcp -C .`
+`aieo mcp` serves the same checks as read-only tools (`check`, `diff`,
+`page`, `explain_rule`, `list_rules`, `logs_report`, `logs_gaps`,
+`search_report`, `indexnow_plan`, `push_plan`). Each tool takes an
+optional `project` (a directory relative to where the server runs) — use
+it for one site in a monorepo, e.g. `{"project": "apps/docs"}`.
+
+## Related skills
+
+`aieo-ci` (CI gate with a baseline), `aieo-crawlers` (access logs),
+`aieo-indexing` (Search Console, Bing, IndexNow), `aieo-llms-txt`.

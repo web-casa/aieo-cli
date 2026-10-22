@@ -1,7 +1,9 @@
 name: release
 
 # Push a tag `vX.Y.Z` (matching Cargo.toml's version) to build and publish:
-# GitHub release assets (+ .sha256), npm packages (@aieo/cli and one per
+# GitHub release assets (+ .sha256), the agent skills, an MCP Bundle and its
+# MCP Registry entry (server.json; listed only when the repository variable
+# MCP_REGISTRY_PUBLISH is "true"), npm packages (@aieo/cli and one per
 # platform; needs the NPM_TOKEN secret) and the Homebrew formula in
 # web-casa/homebrew-tap (needs the HOMEBREW_TAP_TOKEN secret). Without a
 # secret its job is skipped, not failed.
@@ -83,8 +85,46 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp skills/aieo/SKILL.md assets/SKILL.md
+          cp plugins/aieo/skills/aieo/SKILL.md assets/SKILL.md
+          (cd plugins/aieo && zip -qr ../../assets/aieo-skills.zip skills)
           gh release create "$GITHUB_REF_NAME" assets/* --repo "$GITHUB_REPOSITORY" --generate-notes
+
+  mcpb:
+    # one cross-platform MCP Bundle (universal macOS binary via lipo) + server.json
+    needs: publish
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node packaging/mcpb/build.mjs "${GITHUB_REF_NAME#v}" assets mcpb-out
+          gh release upload "$GITHUB_REF_NAME" mcpb-out/*.mcpb mcpb-out/*.mcpb.sha256 mcpb-out/server.json --repo "$GITHUB_REPOSITORY"
+
+  mcp-registry:
+    # lists the bundle in the official MCP Registry as io.github.<owner>/aieo;
+    # runs only when the repository variable MCP_REGISTRY_PUBLISH is "true"
+    needs: mcpb
+    if: vars.MCP_REGISTRY_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" -p server.json
+          curl -fsSL https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz | tar xz mcp-publisher
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish server.json
 
   npm:
     needs: publish

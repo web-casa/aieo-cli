@@ -91,6 +91,8 @@ aieo.ee 侧：
 
 `release.yml` 增加：构建 MCPB 和 WorkBuddy 包作为 release 附件；`server.json` 的版本号随 tag 更新并发布到 MCP Registry。
 
+> 进度（1.1）：Claude Code / Codex 插件市场、5 个技能、MCPB、`server.json` 已完成；Registry 名称改用 `io.github.web-casa/aieo`（GitHub OIDC，无需 DNS），由仓库变量控制是否发布。Cursor、Glama、WorkBuddy 包与 `/.well-known/skills/index.json` 尚未做。
+
 ### 3.2 技能拆分：一个技能只做一件事
 
 参考有赞"16 技能 5 组"和 claude-seo 一类合集的传播方式（合集比单个技能更容易被收藏、转发）。控制在 6 个以内，每个的 `description` 写清触发场景：
