@@ -1,0 +1,70 @@
+{
+  "description": "Client-rendered shell: no robots.txt, no sitemap, no text in the initial HTML.",
+  "expect": {
+    "F02": {
+      "status": "fail",
+      "ratio": 0
+    },
+    "F03": {
+      "status": "info",
+      "ratio": 0
+    },
+    "F04": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F05": {
+      "status": "fail",
+      "ratio": 0
+    },
+    "F06": {
+      "status": "partial",
+      "ratio": 0.5
+    },
+    "F07": {
+      "status": "partial",
+      "ratio": 0.5
+    },
+    "F08": {
+      "status": "fail",
+      "ratio": 0
+    },
+    "F09": {
+      "status": "fail",
+      "ratio": 0
+    },
+    "F10": {
+      "status": "fail",
+      "ratio": 0
+    },
+    "F11": {
+      "status": "info",
+      "ratio": 0
+    },
+    "F12": {
+      "status": "info",
+      "ratio": 0
+    },
+    "F13": {
+      "status": "fail",
+      "ratio": 0
+    },
+    "F14": {
+      "status": "fail",
+      "ratio": 0
+    },
+    "F16": {
+      "status": "info",
+      "ratio": 0,
+      "reason": "absent"
+    },
+    "F17": {
+      "status": "partial",
+      "ratio": 0.5
+    },
+    "F18": {
+      "status": "info",
+      "ratio": 0
+    }
+  }
+}

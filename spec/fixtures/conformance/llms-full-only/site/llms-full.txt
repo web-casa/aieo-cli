@@ -1,0 +1,3 @@
+# Acme Analytics full text
+
+Everything about Acme.

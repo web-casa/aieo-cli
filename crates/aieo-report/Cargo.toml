@@ -1,0 +1,19 @@
+[package]
+name = "aieo-report"
+description = "aieo-cli report formats: aieo-bundle/v1, terminal, SARIF, GitHub annotations, Markdown"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+aieo-core.workspace = true
+aieo-rules.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+aieo-site.workspace = true
+jsonschema.workspace = true
+tempfile.workspace = true
+time.workspace = true
+url.workspace = true

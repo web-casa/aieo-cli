@@ -1,0 +1,70 @@
+{
+  "description": "Two h1, no nav landmark, two internal links.",
+  "expect": {
+    "F02": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F03": {
+      "status": "pass",
+      "ratio": 0.67
+    },
+    "F04": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F05": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F06": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F07": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F08": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F09": {
+      "status": "fail",
+      "ratio": 0.15
+    },
+    "F10": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F11": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F12": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F13": {
+      "status": "partial",
+      "ratio": 0.75
+    },
+    "F14": {
+      "status": "fail",
+      "ratio": 0.4
+    },
+    "F16": {
+      "status": "pass",
+      "ratio": 1,
+      "reason": "index-valid"
+    },
+    "F17": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F18": {
+      "status": "pass",
+      "ratio": 1
+    }
+  }
+}

@@ -1,0 +1,40 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.85"
+repository = "https://github.com/web-casa/aieo-cli"
+homepage = "https://aieo.ee"
+
+[workspace.dependencies]
+aieo-core = { path = "crates/aieo-core" }
+aieo-site = { path = "crates/aieo-site" }
+aieo-rules = { path = "crates/aieo-rules" }
+aieo-report = { path = "crates/aieo-report" }
+anyhow = "1"
+clap = { version = "4.6", features = ["derive"] }
+flate2 = "1"
+globset = "0.4"
+markdown = "1.0.0"
+percent-encoding = "2"
+rayon = "1"
+regex = "1"
+scraper = "0.29"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+tempfile = "3"
+time = { version = "0.3", features = ["formatting", "parsing", "macros"] }
+toml = "0.9"
+url = "2"
+walkdir = "2"
+jsonschema = { version = "0.59", default-features = false }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

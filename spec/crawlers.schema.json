@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aieo.ee/schemas/crawlers.schema.json",
+  "title": "AIEO crawler catalog",
+  "type": "object",
+  "required": ["version", "crawlers"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string" },
+    "crawlers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "operator", "purpose", "robots_token", "ua_pattern", "robots_only", "verify"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "name": { "type": "string" },
+          "operator": { "type": "string" },
+          "purpose": { "enum": ["training", "search_index", "user_fetch", "classic_search", "agent", "other"] },
+          "robots_token": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "ua_pattern": { "type": ["string", "null"] },
+          "robots_only": { "type": "boolean" },
+          "f03_category": { "enum": ["search", "user_access", "training"] },
+          "verify": {
+            "type": "object",
+            "required": ["ip_ranges_url", "rdns_suffixes"],
+            "properties": {
+              "ip_ranges_url": { "type": ["string", "null"], "pattern": "^https://" },
+              "rdns_suffixes": { "type": "array", "items": { "type": "string" } }
+            },
+            "additionalProperties": false
+          },
+          "docs_url": { "type": "string", "pattern": "^https://" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

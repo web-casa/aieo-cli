@@ -1,0 +1,23 @@
+[package]
+name = "aieo-rules"
+description = "aieo-cli rules: readiness modules (F), page checks (T), build contracts (C), regressions (D)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+aieo-core.workspace = true
+aieo-site.workspace = true
+flate2.workspace = true
+markdown.workspace = true
+rayon.workspace = true
+regex.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+time.workspace = true
+toml.workspace = true

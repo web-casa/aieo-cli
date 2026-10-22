@@ -1,0 +1,66 @@
+{
+  "schema": "aieo-bundle/v1",
+  "producer": { "name": "aieo-cli", "version": "0.1.0", "rules_version": "2.0.0", "crawlers_version": "2026-10-22" },
+  "generated_at": "2026-10-22T08:00:00Z",
+  "site": { "origin": "https://example.com", "preset": "starlight", "project_id": null },
+  "run": { "kinds": ["check", "diff"], "mode": "dist", "commit": "acacec3", "branch": "main", "ci": "github-actions", "duration_ms": 412 },
+  "readiness": {
+    "rules_version": "2.0.0",
+    "modules": [
+      { "id": "F02", "status": "pass", "ratio": 1 },
+      { "id": "F16", "status": "partial", "ratio": 0.6, "reason": "index-dead-links" }
+    ],
+    "scores": { "base": 88.5, "bonus": 6.2, "final": 94.7, "incomplete": false }
+  },
+  "inventory": {
+    "pages": [
+      {
+        "url": "https://example.com/guides/install/",
+        "file": "guides/install/index.html",
+        "source": "src/content/docs/guides/install.md",
+        "indexable": true,
+        "noindex": false,
+        "canonical": "https://example.com/guides/install/",
+        "hreflang": { "en": "https://example.com/guides/install/", "zh": "https://example.com/zh/guides/install/" },
+        "title": "Install | Example Docs",
+        "words": 812,
+        "jsonld_types": [],
+        "inlinks": 14,
+        "in_sitemap": true,
+        "hash": "9f2c1a7b3e4d5f60"
+      }
+    ],
+    "sitemaps": ["https://example.com/sitemap-index.xml", "https://example.com/sitemap-0.xml"],
+    "robots_txt": true,
+    "llms_txt": true
+  },
+  "findings": [
+    {
+      "rule": "C-HREFLANG-NOT-RECIPROCAL",
+      "fingerprint": "1b2c3d4e5f607182",
+      "tier": "error",
+      "scope": "page",
+      "url": "https://example.com/guides/install/",
+      "file": "guides/install/index.html",
+      "line": 12,
+      "source": "src/content/docs/guides/install.md",
+      "message": { "en": "hreflang without return link", "zh": "hreflang 缺少回链" },
+      "evidence": [{ "label": { "en": "Alternate", "zh": "备选" }, "detail": "zh → https://example.com/zh/guides/install/ (no link back)" }],
+      "evidence_level": "official",
+      "status": "new"
+    }
+  ],
+  "diff": { "baseline_generated_at": "2026-10-21T08:00:00Z", "baseline_commit": "2cd104f", "new": 1, "existing": 0, "fixed": [] },
+  "summary": {
+    "pages": 1,
+    "indexable": 1,
+    "findings": { "error": 1, "warning": 0, "notice": 0 },
+    "new": { "error": 1, "warning": 0, "notice": 0 },
+    "gate": { "fail_on": ["new:error"], "passed": false },
+    "incomplete": false,
+    "incomplete_reasons": []
+  },
+  "logs": null,
+  "search": null,
+  "privacy": { "raw_logs_included": false, "source_included": false, "ip": "none" }
+}

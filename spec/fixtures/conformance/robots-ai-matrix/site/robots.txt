@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+User-agent: ClaudeBot
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Disallow: /private
+
+Sitemap: {{origin}}/sitemap.xml

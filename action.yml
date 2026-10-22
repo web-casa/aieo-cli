@@ -1,0 +1,99 @@
+name: aieo check
+description: SEO/GEO checks for a site's build output — sitemap, robots, canonical, hreflang, llms.txt and regressions — before it ships.
+author: AIEO
+branding:
+  icon: search
+  color: green
+
+inputs:
+  command:
+    description: "check (gate on all findings) or diff (gate on findings new since the baseline)"
+    default: check
+  working-directory:
+    description: Project root (holds aieo.toml)
+    default: .
+  dist:
+    description: Build directory (default from aieo.toml or the framework preset)
+    default: ""
+  site:
+    description: Production origin, e.g. https://example.com (default from aieo.toml / framework config)
+    default: ""
+  baseline:
+    description: Baseline bundle for `diff` (default from aieo.toml [check] baseline)
+    default: ""
+  fail-on:
+    description: "Gate, e.g. error | new:error,new:warning | never (default from aieo.toml)"
+    default: ""
+  sarif:
+    description: Path to write SARIF to (relative to working-directory); empty to skip
+    default: aieo.sarif
+  upload-sarif:
+    description: Upload the SARIF to GitHub code scanning (needs `security-events: write`)
+    default: "false"
+  bundle:
+    description: Path to write the aieo-bundle/v1 evidence file to; empty to skip
+    default: .aieo/bundle.json.gz
+  version:
+    description: aieo-cli release to install (e.g. 0.1.0), or "source" to build from this action's ref
+    default: source
+  repository:
+    description: Repository the releases are downloaded from
+    default: web-casa/aieo-cli
+
+outputs:
+  exit-code:
+    description: 0 gate passed, 1 gate failed, 2 incomplete evidence or usage error
+    value: ${{ steps.run.outputs.exit-code }}
+  sarif:
+    description: Path of the SARIF report
+    value: ${{ steps.run.outputs.sarif }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install aieo
+      shell: bash
+      env:
+        AIEO_VERSION: ${{ inputs.version }}
+        AIEO_REPOSITORY: ${{ inputs.repository }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: bash "$ACTION_PATH/scripts/install.sh"
+
+    - name: Run aieo
+      id: run
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        CMD: ${{ inputs.command }}
+        DIST: ${{ inputs.dist }}
+        SITE: ${{ inputs.site }}
+        BASELINE: ${{ inputs.baseline }}
+        FAIL_ON: ${{ inputs.fail-on }}
+        SARIF: ${{ inputs.sarif }}
+        BUNDLE: ${{ inputs.bundle }}
+      run: |
+        args=("$CMD" --format github)
+        [ -n "$DIST" ] && args+=("$DIST")
+        [ -n "$SITE" ] && args+=(--site "$SITE")
+        [ -n "$BASELINE" ] && args+=(--baseline "$BASELINE")
+        [ -n "$FAIL_ON" ] && args+=(--fail-on "$FAIL_ON")
+        [ -n "$SARIF" ] && args+=(--report "sarif=$SARIF")
+        [ -n "$BUNDLE" ] && args+=(--report "bundle=$BUNDLE")
+        set +e
+        aieo "${args[@]}"
+        code=$?
+        set -e
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        [ -n "$SARIF" ] && echo "sarif=${{ inputs.working-directory }}/$SARIF" >> "$GITHUB_OUTPUT"
+        echo "AIEO_EXIT=$code" >> "$GITHUB_ENV"
+
+    - name: Upload SARIF
+      if: ${{ always() && inputs.upload-sarif == 'true' && inputs.sarif != '' }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.run.outputs.sarif }}
+        category: aieo
+
+    - name: Gate
+      shell: bash
+      run: exit "${AIEO_EXIT:-2}"

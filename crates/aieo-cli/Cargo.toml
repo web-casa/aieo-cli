@@ -1,0 +1,27 @@
+[package]
+name = "aieo-cli"
+description = "aieo — SEO/GEO checks for a site's build output, before it ships"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[[bin]]
+name = "aieo"
+path = "src/main.rs"
+
+[dependencies]
+aieo-core.workspace = true
+aieo-report.workspace = true
+aieo-rules.workspace = true
+aieo-site.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+time.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tempfile.workspace = true

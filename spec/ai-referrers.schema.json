@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aieo.ee/schemas/ai-referrers.schema.json",
+  "title": "AI answer platforms that send referral traffic",
+  "type": "object",
+  "required": ["version", "platforms"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string" },
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "operator", "referrer_hosts", "utm_sources"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+          "name": { "type": "string" },
+          "operator": { "type": "string" },
+          "referrer_hosts": { "type": "array", "items": { "type": "string" } },
+          "utm_sources": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

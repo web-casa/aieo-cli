@@ -1,0 +1,20 @@
+[package]
+name = "aieo-site"
+description = "A build directory as a static host serves it: routes, _headers, _redirects, robots.txt, sitemaps, HTML"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+aieo-core.workspace = true
+anyhow.workspace = true
+percent-encoding.workspace = true
+regex.workspace = true
+scraper.workspace = true
+serde_json.workspace = true
+url.workspace = true
+walkdir.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

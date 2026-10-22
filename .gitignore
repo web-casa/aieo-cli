@@ -1,0 +1,4 @@
+/target
+# per-run outputs (commit .aieo/baseline.json if you want a shared baseline)
+.aieo/bundle.json.gz
+/out

@@ -1,0 +1,15 @@
+# Acme Analytics
+
+> Privacy-first product analytics for teams.
+
+## Product
+- [features](/features)
+- [pricing](/pricing)
+- [docs](/docs)
+- [api](/api)
+- [changelog](/changelog)
+- [status](/status)
+- [security](/security)
+- [blog](/blog)
+- [about](/about)
+- [contact](/contact)

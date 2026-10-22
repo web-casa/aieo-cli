@@ -1,0 +1,43 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Spec copy present
+        # spec/ is exported from @aieo/rules (aieo.ee); the conformance test
+        # below holds this implementation to its fixtures
+        run: test -f spec/SOURCE.json && test -d spec/fixtures/conformance
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+
+  action:
+    # the composite action against a fixture build
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Fixture build
+        run: |
+          mkdir -p /tmp/site/dist
+          cp -r spec/fixtures/conformance/good-site/site/. /tmp/site/dist/
+          find /tmp/site/dist -type f -exec sed -i 's#{{origin}}#https://fixture.example#g' {} +
+      - id: aieo
+        uses: ./
+        with:
+          working-directory: /tmp/site
+          site: https://fixture.example
+          fail-on: never
+      - run: test -f /tmp/site/aieo.sarif && test -f /tmp/site/.aieo/bundle.json.gz

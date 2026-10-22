@@ -1,0 +1,315 @@
+{
+  "$schema": "./crawlers.schema.json",
+  "version": "2026-10-22",
+  "crawlers": [
+    {
+      "id": "oai-searchbot",
+      "name": "OAI-SearchBot",
+      "operator": "OpenAI",
+      "purpose": "search_index",
+      "robots_token": "oai-searchbot",
+      "ua_pattern": "OAI-SearchBot",
+      "robots_only": false,
+      "f03_category": "search",
+      "verify": {
+        "ip_ranges_url": "https://openai.com/searchbot.json",
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://platform.openai.com/docs/bots"
+    },
+    {
+      "id": "perplexitybot",
+      "name": "PerplexityBot",
+      "operator": "Perplexity",
+      "purpose": "search_index",
+      "robots_token": "perplexitybot",
+      "ua_pattern": "PerplexityBot",
+      "robots_only": false,
+      "f03_category": "search",
+      "verify": {
+        "ip_ranges_url": "https://www.perplexity.com/perplexitybot.json",
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://docs.perplexity.ai/guides/bots"
+    },
+    {
+      "id": "applebot",
+      "name": "Applebot",
+      "operator": "Apple",
+      "purpose": "search_index",
+      "robots_token": "applebot",
+      "ua_pattern": "Applebot",
+      "robots_only": false,
+      "f03_category": "search",
+      "verify": {
+        "ip_ranges_url": "https://search.developer.apple.com/applebot.json",
+        "rdns_suffixes": [
+          "applebot.apple.com"
+        ]
+      }
+    },
+    {
+      "id": "claude-searchbot",
+      "name": "Claude-SearchBot",
+      "operator": "Anthropic",
+      "purpose": "search_index",
+      "robots_token": "claude-searchbot",
+      "ua_pattern": "Claude-SearchBot",
+      "robots_only": false,
+      "f03_category": "search",
+      "verify": {
+        "ip_ranges_url": "https://claude.com/crawling/bots.json",
+        "rdns_suffixes": []
+      }
+    },
+    {
+      "id": "chatgpt-user",
+      "name": "ChatGPT-User",
+      "operator": "OpenAI",
+      "purpose": "user_fetch",
+      "robots_token": "chatgpt-user",
+      "ua_pattern": "ChatGPT-User",
+      "robots_only": false,
+      "f03_category": "user_access",
+      "verify": {
+        "ip_ranges_url": "https://openai.com/chatgpt-user.json",
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://platform.openai.com/docs/bots"
+    },
+    {
+      "id": "claude-user",
+      "name": "Claude-User",
+      "operator": "Anthropic",
+      "purpose": "user_fetch",
+      "robots_token": "claude-user",
+      "ua_pattern": "Claude-User",
+      "robots_only": false,
+      "f03_category": "user_access",
+      "verify": {
+        "ip_ranges_url": "https://claude.com/crawling/bots.json",
+        "rdns_suffixes": []
+      }
+    },
+    {
+      "id": "perplexity-user",
+      "name": "Perplexity-User",
+      "operator": "Perplexity",
+      "purpose": "user_fetch",
+      "robots_token": "perplexity-user",
+      "ua_pattern": "Perplexity-User",
+      "robots_only": false,
+      "f03_category": "user_access",
+      "verify": {
+        "ip_ranges_url": "https://www.perplexity.ai/perplexity-user.json",
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://docs.perplexity.ai/guides/bots"
+    },
+    {
+      "id": "meta-externalagent",
+      "name": "meta-externalagent",
+      "operator": "Meta",
+      "purpose": "training",
+      "robots_token": "meta-externalagent",
+      "ua_pattern": "meta-externalagent",
+      "robots_only": false,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://developers.facebook.com/docs/sharing/webmasters/web-crawlers"
+    },
+    {
+      "id": "gptbot",
+      "name": "GPTBot",
+      "operator": "OpenAI",
+      "purpose": "training",
+      "robots_token": "gptbot",
+      "ua_pattern": "GPTBot",
+      "robots_only": false,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": "https://openai.com/gptbot.json",
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://platform.openai.com/docs/bots"
+    },
+    {
+      "id": "claudebot",
+      "name": "ClaudeBot",
+      "operator": "Anthropic",
+      "purpose": "training",
+      "robots_token": "claudebot",
+      "ua_pattern": "ClaudeBot",
+      "robots_only": false,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": "https://claude.com/crawling/bots.json",
+        "rdns_suffixes": []
+      }
+    },
+    {
+      "id": "google-extended",
+      "name": "Google-Extended",
+      "operator": "Google",
+      "purpose": "training",
+      "robots_token": "google-extended",
+      "ua_pattern": null,
+      "robots_only": true,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers"
+    },
+    {
+      "id": "ccbot",
+      "name": "CCBot",
+      "operator": "Common Crawl",
+      "purpose": "training",
+      "robots_token": "ccbot",
+      "ua_pattern": "CCBot",
+      "robots_only": false,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": "https://index.commoncrawl.org/ccbot.json",
+        "rdns_suffixes": [
+          "crawl.commoncrawl.org"
+        ]
+      }
+    },
+    {
+      "id": "applebot-extended",
+      "name": "Applebot-Extended",
+      "operator": "Apple",
+      "purpose": "training",
+      "robots_token": "applebot-extended",
+      "ua_pattern": null,
+      "robots_only": true,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      }
+    },
+    {
+      "id": "bytespider",
+      "name": "Bytespider",
+      "operator": "ByteDance",
+      "purpose": "training",
+      "robots_token": "bytespider",
+      "ua_pattern": "Bytespider",
+      "robots_only": false,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      }
+    },
+    {
+      "id": "cohere-ai",
+      "name": "cohere-ai",
+      "operator": "Cohere",
+      "purpose": "training",
+      "robots_token": "cohere-ai",
+      "ua_pattern": "cohere-ai",
+      "robots_only": false,
+      "f03_category": "training",
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      }
+    },
+    {
+      "id": "googlebot",
+      "name": "Googlebot",
+      "operator": "Google",
+      "purpose": "classic_search",
+      "robots_token": "googlebot",
+      "ua_pattern": "Googlebot",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": "https://developers.google.com/static/crawling/ipranges/common-crawlers.json",
+        "rdns_suffixes": [
+          "googlebot.com",
+          "google.com",
+          "googleusercontent.com"
+        ]
+      },
+      "docs_url": "https://developers.google.com/search/docs/crawling-indexing/verifying-googlebot"
+    },
+    {
+      "id": "bingbot",
+      "name": "bingbot",
+      "operator": "Microsoft",
+      "purpose": "classic_search",
+      "robots_token": "bingbot",
+      "ua_pattern": "bingbot",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": "https://www.bing.com/toolbox/bingbot.json",
+        "rdns_suffixes": [
+          "search.msn.com"
+        ]
+      }
+    },
+    {
+      "id": "meta-webindexer",
+      "name": "meta-webindexer",
+      "operator": "Meta",
+      "purpose": "search_index",
+      "robots_token": "meta-webindexer",
+      "ua_pattern": "meta-webindexer",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://developers.facebook.com/docs/sharing/webmasters/web-crawlers"
+    },
+    {
+      "id": "meta-externalfetcher",
+      "name": "meta-externalfetcher",
+      "operator": "Meta",
+      "purpose": "user_fetch",
+      "robots_token": "meta-externalfetcher",
+      "ua_pattern": "meta-externalfetcher",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://developers.facebook.com/docs/sharing/webmasters/web-crawlers"
+    },
+    {
+      "id": "amazonbot",
+      "name": "Amazonbot",
+      "operator": "Amazon",
+      "purpose": "training",
+      "robots_token": "amazonbot",
+      "ua_pattern": "Amazonbot",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": null,
+        "rdns_suffixes": []
+      },
+      "docs_url": "https://developer.amazon.com/amazonbot"
+    },
+    {
+      "id": "duckassistbot",
+      "name": "DuckAssistBot",
+      "operator": "DuckDuckGo",
+      "purpose": "user_fetch",
+      "robots_token": "duckassistbot",
+      "ua_pattern": "DuckAssistBot",
+      "robots_only": false,
+      "verify": {
+        "ip_ranges_url": "https://duckduckgo.com/duckassistbot.json",
+        "rdns_suffixes": []
+      }
+    }
+  ]
+}

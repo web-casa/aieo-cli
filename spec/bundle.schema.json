@@ -1,0 +1,233 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aieo.ee/schemas/aieo-bundle-v1.schema.json",
+  "title": "aieo-bundle/v1 — evidence exported by aieo-cli for aieo.ee",
+  "description": "Only findings and aggregates: no raw log lines, no IP addresses, no source code.",
+  "type": "object",
+  "required": ["schema", "producer", "generated_at", "site", "run", "readiness", "inventory", "findings", "diff", "summary", "logs", "search", "privacy"],
+  "properties": {
+    "schema": { "const": "aieo-bundle/v1" },
+    "producer": {
+      "type": "object",
+      "required": ["name", "version", "rules_version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "rules_version": { "type": "string" },
+        "crawlers_version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "generated_at": { "$ref": "#/definitions/timestamp" },
+    "site": {
+      "type": "object",
+      "required": ["origin", "preset"],
+      "properties": {
+        "origin": { "type": "string", "pattern": "^https?://[^/]+$" },
+        "preset": { "type": "string" },
+        "project_id": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "run": {
+      "type": "object",
+      "required": ["kinds", "mode", "duration_ms"],
+      "properties": {
+        "kinds": { "type": "array", "minItems": 1, "items": { "enum": ["check", "diff", "logs", "search"] }, "uniqueItems": true },
+        "mode": { "enum": ["dist", "url"] },
+        "commit": { "type": ["string", "null"] },
+        "branch": { "type": ["string", "null"] },
+        "ci": { "type": ["string", "null"] },
+        "duration_ms": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "readiness": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["rules_version", "modules", "scores"],
+          "properties": {
+            "rules_version": { "type": "string" },
+            "modules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "status", "ratio"],
+                "properties": {
+                  "id": { "type": "string", "pattern": "^F\\d{2}$" },
+                  "status": { "enum": ["pass", "partial", "fail", "info", "not_applicable", "unverified"] },
+                  "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "reason": { "type": "string" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "scores": {
+              "type": "object",
+              "required": ["base", "bonus", "final", "incomplete"],
+              "properties": {
+                "base": { "type": "number", "minimum": 0, "maximum": 100 },
+                "bonus": { "type": "number", "minimum": 0, "maximum": 10 },
+                "final": { "type": "number", "minimum": 0, "maximum": 100 },
+                "incomplete": { "type": "boolean" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "inventory": {
+      "type": "object",
+      "required": ["pages", "sitemaps", "robots_txt", "llms_txt"],
+      "properties": {
+        "pages": { "type": "array", "items": { "$ref": "#/definitions/page" } },
+        "sitemaps": { "type": "array", "items": { "type": "string" } },
+        "robots_txt": { "type": "boolean" },
+        "llms_txt": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "findings": { "type": "array", "items": { "$ref": "#/definitions/finding" } },
+    "diff": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["baseline_generated_at", "new", "existing", "fixed"],
+          "properties": {
+            "baseline_generated_at": { "$ref": "#/definitions/timestamp" },
+            "baseline_commit": { "type": ["string", "null"] },
+            "new": { "type": "integer", "minimum": 0 },
+            "existing": { "type": "integer", "minimum": 0 },
+            "fixed": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["rule", "fingerprint"],
+                "properties": {
+                  "rule": { "type": "string" },
+                  "fingerprint": { "type": "string" },
+                  "url": { "type": ["string", "null"] }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "required": ["pages", "indexable", "findings", "new", "gate", "incomplete", "incomplete_reasons"],
+      "properties": {
+        "pages": { "type": "integer", "minimum": 0 },
+        "indexable": { "type": "integer", "minimum": 0 },
+        "findings": { "$ref": "#/definitions/tierCounts" },
+        "new": { "oneOf": [{ "type": "null" }, { "$ref": "#/definitions/tierCounts" }] },
+        "gate": {
+          "type": "object",
+          "required": ["fail_on", "passed"],
+          "properties": {
+            "fail_on": { "type": "array", "items": { "type": "string", "pattern": "^(new:)?(error|warning|notice)$" } },
+            "passed": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "incomplete": { "type": "boolean" },
+        "incomplete_reasons": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "logs": { "description": "Reserved for aieo-cli 0.3 (crawler log aggregates).", "type": "null" },
+    "search": { "description": "Reserved for aieo-cli 0.4 (GSC / Bing / IndexNow aggregates).", "type": "null" },
+    "privacy": {
+      "type": "object",
+      "required": ["raw_logs_included", "source_included", "ip"],
+      "properties": {
+        "raw_logs_included": { "const": false },
+        "source_included": { "const": false },
+        "ip": { "enum": ["none", "salted-hash"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "timestamp": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$" },
+    "localized": {
+      "type": "object",
+      "required": ["en", "zh"],
+      "properties": { "en": { "type": "string" }, "zh": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "tier": { "enum": ["error", "warning", "notice"] },
+    "tierCounts": {
+      "type": "object",
+      "required": ["error", "warning", "notice"],
+      "properties": {
+        "error": { "type": "integer", "minimum": 0 },
+        "warning": { "type": "integer", "minimum": 0 },
+        "notice": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "page": {
+      "type": "object",
+      "required": ["url", "file", "indexable", "noindex", "canonical", "hreflang", "title", "words", "jsonld_types", "inlinks", "in_sitemap", "hash"],
+      "properties": {
+        "url": { "type": "string" },
+        "file": { "type": "string" },
+        "source": { "type": ["string", "null"] },
+        "indexable": { "type": "boolean" },
+        "noindex": { "type": "boolean" },
+        "canonical": { "type": ["string", "null"] },
+        "hreflang": { "type": "object", "additionalProperties": { "type": "string" } },
+        "title": { "type": ["string", "null"] },
+        "words": { "type": "integer", "minimum": 0 },
+        "jsonld_types": { "type": "array", "items": { "type": "string" } },
+        "inlinks": { "type": "integer", "minimum": 0 },
+        "in_sitemap": { "type": "boolean" },
+        "hash": { "type": "string", "pattern": "^[0-9a-f]{16,64}$" }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["rule", "fingerprint", "tier", "scope", "message", "evidence", "evidence_level", "status"],
+      "properties": {
+        "rule": { "type": "string" },
+        "fingerprint": { "type": "string", "pattern": "^[0-9a-f]{16,64}$" },
+        "tier": { "$ref": "#/definitions/tier" },
+        "scope": { "enum": ["site", "page"] },
+        "url": { "type": ["string", "null"] },
+        "file": { "type": ["string", "null"] },
+        "line": { "type": ["integer", "null"], "minimum": 1 },
+        "source": { "type": ["string", "null"] },
+        "message": { "$ref": "#/definitions/localized" },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label", "detail"],
+            "properties": { "label": { "$ref": "#/definitions/localized" }, "detail": { "type": "string" } },
+            "additionalProperties": false
+          }
+        },
+        "evidence_level": { "enum": ["official", "heuristic"] },
+        "status": { "enum": ["new", "existing", "unknown"] },
+        "suppressed": {
+          "type": "object",
+          "required": ["reason", "owner", "expires"],
+          "properties": { "reason": { "type": "string" }, "owner": { "type": "string" }, "expires": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" } },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

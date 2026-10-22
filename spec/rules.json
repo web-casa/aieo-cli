@@ -1,0 +1,2197 @@
+{
+  "$schema": "./rules.schema.json",
+  "version": "2.0.0",
+  "rules": [
+    {
+      "id": "F01",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 12,
+      "title": {
+        "en": "Public access, HTTPS & redirects",
+        "zh": "公开访问、HTTPS 与重定向"
+      },
+      "description": {
+        "en": "Homepage reachable over HTTPS with sane redirects",
+        "zh": "首页可经 HTTPS 访问且重定向正常"
+      },
+      "tier": {
+        "fail": "error",
+        "partial": "warning"
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "F02",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 10,
+      "title": {
+        "en": "robots.txt & crawl rules",
+        "zh": "robots.txt 与抓取规则"
+      },
+      "description": {
+        "en": "robots.txt present, parseable, with rule groups",
+        "zh": "robots.txt 存在、可解析、含规则组"
+      },
+      "tier": {
+        "fail": "warning",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://www.rfc-editor.org/rfc/rfc9309"
+    },
+    {
+      "id": "F03",
+      "family": "F",
+      "scope": "site",
+      "class": "bonus",
+      "weight": 4,
+      "title": {
+        "en": "AI crawler declaration matrix",
+        "zh": "AI 爬虫声明矩阵"
+      },
+      "description": {
+        "en": "Search / user-access / training declared separately",
+        "zh": "搜索、用户访问、训练三类分开声明"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://www.rfc-editor.org/rfc/rfc9309"
+    },
+    {
+      "id": "F04",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 8,
+      "title": {
+        "en": "Indexing & snippet limits",
+        "zh": "索引与摘要限制"
+      },
+      "description": {
+        "en": "noindex/nosnippet-style directives on the homepage",
+        "zh": "首页的 noindex/nosnippet 类指令"
+      },
+      "tier": {
+        "fail": "error",
+        "partial": "warning"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/block-indexing"
+    },
+    {
+      "id": "F05",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 10,
+      "title": {
+        "en": "Sitemap discovery & validity",
+        "zh": "Sitemap 发现与有效性"
+      },
+      "description": {
+        "en": "XML sitemap found (robots declaration or /sitemap.xml) and parseable",
+        "zh": "找到并解析 XML sitemap（robots 声明或 /sitemap.xml）"
+      },
+      "tier": {
+        "fail": "warning",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+    },
+    {
+      "id": "F06",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 8,
+      "title": {
+        "en": "Canonical & canonical URL",
+        "zh": "Canonical 与主页面 URL"
+      },
+      "description": {
+        "en": "rel=canonical present and consistent with the final URL",
+        "zh": "rel=canonical 存在且与最终 URL 一致"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "F07",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 6,
+      "title": {
+        "en": "Page language & hreflang",
+        "zh": "页面语言与 hreflang"
+      },
+      "description": {
+        "en": "html lang declared; hreflang alternates when multilingual",
+        "zh": "声明 html lang；多语言时提供 hreflang"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    },
+    {
+      "id": "F08",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 10,
+      "title": {
+        "en": "Title & meta description",
+        "zh": "标题与摘要元数据"
+      },
+      "description": {
+        "en": "Descriptive title and meta description present",
+        "zh": "存在描述性的标题与 meta description"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/title-link"
+    },
+    {
+      "id": "F09",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 12,
+      "title": {
+        "en": "Semantic & navigable structure",
+        "zh": "页面语义与可导航结构"
+      },
+      "description": {
+        "en": "Single h1, heading hierarchy, nav landmark, internal links",
+        "zh": "唯一 h1、标题层级、nav 标记、站内链接"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "F10",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 12,
+      "title": {
+        "en": "Content without JavaScript",
+        "zh": "正文提取与 JS 依赖风险"
+      },
+      "description": {
+        "en": "Meaningful content present in initial HTML",
+        "zh": "初始 HTML 中含有实质内容"
+      },
+      "tier": {
+        "fail": "warning",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "F11",
+      "family": "F",
+      "scope": "site",
+      "class": "bonus",
+      "weight": 4,
+      "title": {
+        "en": "Structured data (JSON-LD)",
+        "zh": "结构化数据解析"
+      },
+      "description": {
+        "en": "Parseable JSON-LD with schema.org types",
+        "zh": "可解析的 JSON-LD 与 schema.org 类型"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
+    },
+    {
+      "id": "F12",
+      "family": "F",
+      "scope": "site",
+      "class": "bonus",
+      "weight": 3,
+      "title": {
+        "en": "Structured data consistency",
+        "zh": "结构化数据与可见内容一致性"
+      },
+      "description": {
+        "en": "JSON-LD names appear in visible content",
+        "zh": "JSON-LD 名称出现在可见内容中"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "F13",
+      "family": "F",
+      "scope": "site",
+      "class": "bonus",
+      "weight": 3,
+      "title": {
+        "en": "Organization, author & source signals",
+        "zh": "组织、作者与来源线索"
+      },
+      "description": {
+        "en": "Organization JSON-LD, author, contact/about hints",
+        "zh": "组织 JSON-LD、作者、联系/关于线索"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "F14",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 6,
+      "title": {
+        "en": "Link discoverability",
+        "zh": "链接发现与 URL 可读取性"
+      },
+      "description": {
+        "en": "Crawlable internal links with anchor text",
+        "zh": "带锚文本的可爬取站内链接"
+      },
+      "tier": {
+        "fail": "warning",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/links-crawlable"
+    },
+    {
+      "id": "F15",
+      "family": "F",
+      "scope": "site",
+      "class": "bonus",
+      "weight": 4,
+      "title": {
+        "en": "Markdown discovery",
+        "zh": "Markdown 发现与内容协商"
+      },
+      "description": {
+        "en": "Markdown twin via negotiation or .md variants",
+        "zh": "内容协商或 .md 变体提供 Markdown"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "F16",
+      "family": "F",
+      "scope": "site",
+      "class": "bonus",
+      "weight": 4,
+      "title": {
+        "en": "llms.txt / llms-full.txt",
+        "zh": "llms.txt / llms-full.txt"
+      },
+      "description": {
+        "en": "Optional LLM-oriented index files",
+        "zh": "可选的 LLM 导读文件"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://llmstxt.org/"
+    },
+    {
+      "id": "F17",
+      "family": "F",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 6,
+      "title": {
+        "en": "Content size & truncation risk",
+        "zh": "内容体积与截断风险"
+      },
+      "description": {
+        "en": "Homepage HTML within practical fetch limits",
+        "zh": "首页 HTML 在实际抓取限制内"
+      },
+      "tier": {
+        "fail": "warning",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "F18",
+      "family": "F",
+      "scope": "site",
+      "class": "bonus",
+      "weight": 2,
+      "title": {
+        "en": "Agent, API & service discovery",
+        "zh": "Agent、API 与服务能力发现"
+      },
+      "description": {
+        "en": "OpenAPI / ai-plugin / MCP-style surfaces (site-type aware)",
+        "zh": "OpenAPI / ai-plugin 等（按站点类型判定）"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": null
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts",
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G01",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "discoverability",
+      "title": {
+        "en": "Markdown alternate",
+        "zh": "Markdown 副本声明"
+      },
+      "description": {
+        "en": "Link header / <link rel=alternate type=text/markdown> points at a fetchable markdown twin",
+        "zh": "Link 头或 HTML alternate 指向可获取的 Markdown 副本"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G02",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "content",
+      "title": {
+        "en": "Markdown token diagnostics",
+        "zh": "Markdown token 诊断"
+      },
+      "description": {
+        "en": "x-markdown-tokens / x-original-tokens headers on the markdown response",
+        "zh": "Markdown 响应的 x-markdown-tokens / x-original-tokens 头"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G03",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "bot-access",
+      "title": {
+        "en": "Content-Signal",
+        "zh": "Content-Signal 声明"
+      },
+      "description": {
+        "en": "content-signal response header declaring AI usage preferences",
+        "zh": "content-signal 响应头声明的 AI 使用偏好"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G04",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "discoverability",
+      "title": {
+        "en": "API catalog (RFC 9727)",
+        "zh": "API 目录（RFC 9727）"
+      },
+      "description": {
+        "en": "/.well-known/api-catalog serves a valid linkset document",
+        "zh": "/.well-known/api-catalog 返回合法 linkset 文档"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G05",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "protocols",
+      "title": {
+        "en": "OAuth protected-resource (RFC 9728)",
+        "zh": "OAuth 受保护资源元数据（RFC 9728）"
+      },
+      "description": {
+        "en": "/.well-known/oauth-protected-resource with a resource field",
+        "zh": "/.well-known/oauth-protected-resource 含 resource 字段"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G06",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "protocols",
+      "title": {
+        "en": "OAuth authorization-server (RFC 8414)",
+        "zh": "OAuth 授权服务器元数据（RFC 8414）"
+      },
+      "description": {
+        "en": "/.well-known/oauth-authorization-server with an issuer field",
+        "zh": "/.well-known/oauth-authorization-server 含 issuer 字段"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G07",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "discoverability",
+      "title": {
+        "en": "Agent Skills (SKILL.md)",
+        "zh": "Agent 技能（SKILL.md）"
+      },
+      "description": {
+        "en": "A declared SKILL.md with valid agentskills.io frontmatter",
+        "zh": "声明的 SKILL.md 含合法 agentskills.io frontmatter"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G08",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "protocols",
+      "title": {
+        "en": "MCP catalog (ai-catalog.json)",
+        "zh": "MCP 目录（ai-catalog.json）"
+      },
+      "description": {
+        "en": "MCP server-card draft discovery via /.well-known/ai-catalog.json",
+        "zh": "MCP server-card 草案的 /.well-known/ai-catalog.json 发现"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G09",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "protocols",
+      "title": {
+        "en": "Auth.md",
+        "zh": "Auth.md"
+      },
+      "description": {
+        "en": "/auth.md machine-readable authentication notes (WorkOS protocol)",
+        "zh": "/auth.md 机器可读认证说明（WorkOS 协议）"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G10",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "commerce",
+      "title": {
+        "en": "UCP (Universal Commerce Protocol)",
+        "zh": "UCP（通用商务协议）"
+      },
+      "description": {
+        "en": "/.well-known/ucp discovery profile",
+        "zh": "/.well-known/ucp discovery profile"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G11",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "commerce",
+      "title": {
+        "en": "Payment declarations (x402 / MPP / ACP)",
+        "zh": "支付协议声明（x402 / MPP / ACP）"
+      },
+      "description": {
+        "en": "declaration-level only — read from fetched documents, no transactions",
+        "zh": "仅声明级——从已抓取文档读取，不发起交易"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G12",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "discoverability",
+      "title": {
+        "en": "DNS agent discovery",
+        "zh": "DNS agent 发现记录"
+      },
+      "description": {
+        "en": "AID draft TXT records at _agent.<host> (SVCB DNS-AID not probed in this engine version)",
+        "zh": "_agent.<host> 的 AID 草案 TXT 记录（本引擎版本不探测 SVCB DNS-AID）"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G13",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "protocols",
+      "title": {
+        "en": "ARD (Agentic Resource Discovery)",
+        "zh": "ARD（Agentic Resource Discovery）"
+      },
+      "description": {
+        "en": "/.well-known/ard.json manifest with an entries array",
+        "zh": "/.well-known/ard.json manifest（entries 数组）"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G14",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "protocols",
+      "title": {
+        "en": "WebMCP",
+        "zh": "WebMCP"
+      },
+      "description": {
+        "en": "runtime JS API — reported unverified by a static scan",
+        "zh": "运行时 JS API——静态扫描如实标注未验证"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "G15",
+      "family": "G",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "category": "bot-access",
+      "title": {
+        "en": "Web Bot Auth",
+        "zh": "Web Bot Auth"
+      },
+      "description": {
+        "en": "crawler-side request signing — no site-side marker exists to probe",
+        "zh": "爬虫侧请求签名——站点侧无可探测标记"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "H01",
+      "family": "H",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "title": {
+        "en": "Share preview tags",
+        "zh": "分享预览标签"
+      },
+      "description": {
+        "en": "Open Graph and Twitter Card declarations",
+        "zh": "Open Graph 与 Twitter Card 声明"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "H02",
+      "family": "H",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "title": {
+        "en": "Feed declaration",
+        "zh": "订阅源声明"
+      },
+      "description": {
+        "en": "RSS / Atom / JSON Feed link in the page head",
+        "zh": "页面 head 中的 RSS / Atom / JSON Feed 链接"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "H03",
+      "family": "H",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "title": {
+        "en": "Site icon declaration",
+        "zh": "站点图标声明"
+      },
+      "description": {
+        "en": "icon / apple-touch-icon link in the page head",
+        "zh": "页面 head 中的 icon / apple-touch-icon 链接"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "H04",
+      "family": "H",
+      "scope": "site",
+      "class": "info",
+      "weight": 0,
+      "title": {
+        "en": "Time signals",
+        "zh": "时间信号"
+      },
+      "description": {
+        "en": "Whether the page publishes a machine-readable date",
+        "zh": "页面是否发布了机器可读的日期"
+      },
+      "tier": {
+        "fail": null,
+        "partial": null
+      },
+      "modes": [
+        "url"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "ts"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "T-MISSING-TITLE",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Missing <title>",
+        "zh": "缺少 <title>"
+      },
+      "description": {
+        "en": "An indexable page has no title element.",
+        "zh": "可索引页面没有 title 元素。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/title-link",
+      "saas_issue_type": "missing_title"
+    },
+    {
+      "id": "T-DUPLICATE-TITLE",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Duplicate title",
+        "zh": "标题重复"
+      },
+      "description": {
+        "en": "Several indexable pages share the same title.",
+        "zh": "多个可索引页面使用了相同的标题。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/title-link"
+    },
+    {
+      "id": "T-MISSING-META-DESCRIPTION",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Missing meta description",
+        "zh": "缺少 meta description"
+      },
+      "description": {
+        "en": "No meta description; engines build the snippet from page text instead.",
+        "zh": "没有 meta description，引擎会改从正文生成摘要。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/snippet",
+      "saas_issue_type": "missing_meta_description"
+    },
+    {
+      "id": "T-MISSING-H1",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "No H1 heading",
+        "zh": "没有 H1 标题"
+      },
+      "description": {
+        "en": "The page has no h1 element.",
+        "zh": "页面没有 h1 元素。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "saas_issue_type": "missing_h1"
+    },
+    {
+      "id": "T-MULTIPLE-H1",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Multiple H1 headings",
+        "zh": "多个 H1 标题"
+      },
+      "description": {
+        "en": "The page has more than one h1 element.",
+        "zh": "页面有多个 h1 元素。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "saas_issue_type": "multiple_h1"
+    },
+    {
+      "id": "T-MISSING-LANG",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Missing html lang",
+        "zh": "缺少 html lang"
+      },
+      "description": {
+        "en": "The html element declares no language.",
+        "zh": "html 元素没有声明语言。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    },
+    {
+      "id": "T-MISSING-CANONICAL",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "No canonical tag",
+        "zh": "没有 canonical 标签"
+      },
+      "description": {
+        "en": "The page declares no canonical URL.",
+        "zh": "页面没有声明 canonical URL。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "saas_issue_type": "missing_canonical"
+    },
+    {
+      "id": "T-IMAGES-MISSING-ALT",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Images missing alt text",
+        "zh": "图片缺少 alt 文本"
+      },
+      "description": {
+        "en": "Images without an alt attribute.",
+        "zh": "图片没有 alt 属性。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/google-images",
+      "saas_issue_type": "images_missing_alt"
+    },
+    {
+      "id": "T-JSONLD-INVALID",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Malformed JSON-LD",
+        "zh": "JSON-LD 格式错误"
+      },
+      "description": {
+        "en": "A JSON-LD block is not valid JSON; engines ignore it entirely.",
+        "zh": "JSON-LD 块不是合法 JSON，引擎会整体忽略它。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
+    },
+    {
+      "id": "T-THIN-CONTENT",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Thin content",
+        "zh": "内容过少"
+      },
+      "description": {
+        "en": "Fewer than 300 visible words (heuristic).",
+        "zh": "可见文字少于 300 词（启发式）。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": false,
+      "saas_issue_type": "thin_content"
+    },
+    {
+      "id": "T-TITLE-LENGTH",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Title length outside 30–60 characters",
+        "zh": "标题长度不在 30–60 字符内"
+      },
+      "description": {
+        "en": "Heuristic only: Google sets no fixed title length.",
+        "zh": "仅为启发式：Google 没有固定的标题长度要求。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": false,
+      "saas_issue_type": "title_too_long"
+    },
+    {
+      "id": "T-HTML-SIZE",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Very large HTML document",
+        "zh": "HTML 文档过大"
+      },
+      "description": {
+        "en": "HTML over 1 MB; many fetchers truncate around 1–2 MB.",
+        "zh": "HTML 超过 1 MB，多数抓取器在 1–2 MB 处截断。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "C-SITEMAP-URL-MISSING",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Sitemap lists a page that is not in the build",
+        "zh": "Sitemap 列出了构建中不存在的页面"
+      },
+      "description": {
+        "en": "A same-origin sitemap URL maps to no file in the build output and will 404.",
+        "zh": "Sitemap 中的同源 URL 在构建产物里没有对应文件，上线后会 404。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+    },
+    {
+      "id": "C-SITEMAP-URL-NOINDEX",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Sitemap lists a noindex page",
+        "zh": "Sitemap 列出了 noindex 页面"
+      },
+      "description": {
+        "en": "A sitemap URL carries noindex (meta robots or X-Robots-Tag): conflicting signals.",
+        "zh": "Sitemap 中的页面带有 noindex（meta robots 或 X-Robots-Tag），信号互相矛盾。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+    },
+    {
+      "id": "C-SITEMAP-URL-NONCANONICAL",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Sitemap lists a non-canonical URL",
+        "zh": "Sitemap 列出了非规范 URL"
+      },
+      "description": {
+        "en": "The page at a sitemap URL declares a different canonical URL.",
+        "zh": "Sitemap 中 URL 对应的页面声明了另一个 canonical。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "C-SITEMAP-FOREIGN-HOST",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Sitemap URL on another host",
+        "zh": "Sitemap URL 指向其他主机"
+      },
+      "description": {
+        "en": "A sitemap entry points at a host other than the site origin (localhost, preview or wrong domain).",
+        "zh": "Sitemap 条目指向站点来源以外的主机（localhost、预览域名或错误域名）。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+    },
+    {
+      "id": "C-SITEMAP-ROBOTS-BLOCKED",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Sitemap URL blocked by robots.txt",
+        "zh": "Sitemap URL 被 robots.txt 屏蔽"
+      },
+      "description": {
+        "en": "robots.txt disallows a URL the sitemap asks engines to crawl.",
+        "zh": "robots.txt 禁止了 sitemap 要求抓取的 URL。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://www.rfc-editor.org/rfc/rfc9309"
+    },
+    {
+      "id": "C-SITEMAP-UNDECLARED",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Sitemap not declared in robots.txt",
+        "zh": "robots.txt 未声明 sitemap"
+      },
+      "description": {
+        "en": "The build ships a sitemap that robots.txt does not reference.",
+        "zh": "构建产物包含 sitemap，但 robots.txt 没有引用它。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+    },
+    {
+      "id": "C-PAGE-NOT-IN-SITEMAP",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Indexable page missing from the sitemap",
+        "zh": "可索引页面不在 sitemap 中"
+      },
+      "description": {
+        "en": "A self-canonical, indexable page is not listed in any sitemap.",
+        "zh": "自引用 canonical 的可索引页面没有出现在任何 sitemap 中。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+    },
+    {
+      "id": "C-CANONICAL-FOREIGN-HOST",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Canonical points at another host",
+        "zh": "Canonical 指向其他主机"
+      },
+      "description": {
+        "en": "The canonical URL uses a host other than the site origin.",
+        "zh": "canonical URL 使用了站点来源以外的主机。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "C-CANONICAL-TARGET-MISSING",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Canonical target is not in the build",
+        "zh": "Canonical 目标不在构建中"
+      },
+      "description": {
+        "en": "The canonical URL maps to no file in the build output.",
+        "zh": "canonical URL 在构建产物中没有对应文件。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "C-CANONICAL-TARGET-NOINDEX",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Canonical target is noindex",
+        "zh": "Canonical 目标带有 noindex"
+      },
+      "description": {
+        "en": "The page names a canonical URL whose page is noindex.",
+        "zh": "页面声明的 canonical 目标页面带有 noindex。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "C-CANONICAL-CHAIN",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Canonical chain",
+        "zh": "Canonical 链"
+      },
+      "description": {
+        "en": "The canonical target itself declares another canonical URL.",
+        "zh": "canonical 目标页面又声明了另一个 canonical。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "C-HREFLANG-TARGET-MISSING",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "hreflang target is not in the build",
+        "zh": "hreflang 目标不在构建中"
+      },
+      "description": {
+        "en": "An hreflang alternate maps to no file in the build output.",
+        "zh": "hreflang 备选 URL 在构建产物中没有对应文件。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    },
+    {
+      "id": "C-HREFLANG-NOT-RECIPROCAL",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "hreflang without return link",
+        "zh": "hreflang 缺少回链"
+      },
+      "description": {
+        "en": "Page A lists page B as an alternate but B does not list A; engines ignore the pair.",
+        "zh": "A 页面把 B 列为备选，但 B 没有回指 A，引擎会忽略这一对标注。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    },
+    {
+      "id": "C-HREFLANG-INVALID-CODE",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Invalid hreflang code",
+        "zh": "hreflang 代码无效"
+      },
+      "description": {
+        "en": "An hreflang value is not a valid language(-region) code or x-default.",
+        "zh": "hreflang 值不是有效的语言（-地区）代码或 x-default。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    },
+    {
+      "id": "C-HREFLANG-SELF-MISSING",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "hreflang set does not include the page itself",
+        "zh": "hreflang 组未包含页面自身"
+      },
+      "description": {
+        "en": "Each language version should list itself among its alternates.",
+        "zh": "每个语言版本都应在备选中列出自身。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    },
+    {
+      "id": "C-LINK-BROKEN",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Broken internal link",
+        "zh": "站内链接失效"
+      },
+      "description": {
+        "en": "An internal link points at a path with no file and no matching redirect.",
+        "zh": "站内链接指向的路径既没有文件，也没有匹配的重定向。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/links-crawlable"
+    },
+    {
+      "id": "C-ORPHAN-PAGE",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Orphan page",
+        "zh": "孤立页面"
+      },
+      "description": {
+        "en": "An indexable page has no internal links pointing to it.",
+        "zh": "可索引页面没有任何站内链接指向它。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/links-crawlable"
+    },
+    {
+      "id": "C-LLMS-LINK-BROKEN",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "llms.txt links to a missing page",
+        "zh": "llms.txt 链接到不存在的页面"
+      },
+      "description": {
+        "en": "A same-origin llms.txt link maps to no file in the build output.",
+        "zh": "llms.txt 中的同源链接在构建产物中没有对应文件。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://llmstxt.org/"
+    },
+    {
+      "id": "C-LLMS-LINK-NOINDEX",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "llms.txt links to a noindex or non-canonical page",
+        "zh": "llms.txt 链接到 noindex 或非规范页面"
+      },
+      "description": {
+        "en": "llms.txt points readers at a page that engines are told not to index or to replace.",
+        "zh": "llms.txt 引导读者访问的页面被要求不索引或被其他规范页取代。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://llmstxt.org/"
+    },
+    {
+      "id": "C-MD-ALTERNATE-MISSING",
+      "family": "C",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Markdown alternate is not in the build",
+        "zh": "Markdown 备选版本不在构建中"
+      },
+      "description": {
+        "en": "A <link rel=alternate type=text/markdown> target maps to no file.",
+        "zh": "<link rel=alternate type=text/markdown> 的目标没有对应文件。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "C-ROBOTS-BLOCKS-ALL",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "robots.txt blocks the whole site",
+        "zh": "robots.txt 屏蔽了整个站点"
+      },
+      "description": {
+        "en": "`User-agent: *` disallows `/` — usually a staging robots.txt shipped to production.",
+        "zh": "`User-agent: *` 禁止了 `/`，通常是把测试环境的 robots.txt 发布到了生产环境。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://www.rfc-editor.org/rfc/rfc9309"
+    },
+    {
+      "id": "C-ROBOTS-AI-SEARCH-BLOCKED",
+      "family": "C",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "robots.txt blocks AI search crawlers",
+        "zh": "robots.txt 屏蔽了 AI 搜索爬虫"
+      },
+      "description": {
+        "en": "An AI search crawler (OAI-SearchBot, Claude-SearchBot, PerplexityBot…) may not fetch `/`, which removes the site from that engine's answers.",
+        "zh": "AI 搜索爬虫（OAI-SearchBot、Claude-SearchBot、PerplexityBot 等）不能抓取 `/`，站点会因此从该引擎的回答中消失。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://platform.openai.com/docs/bots"
+    },
+    {
+      "id": "D-PAGE-REMOVED",
+      "family": "D",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Indexable page removed without redirect",
+        "zh": "可索引页面被删除且没有重定向"
+      },
+      "description": {
+        "en": "A page that was indexable in the baseline is gone and no redirect covers it.",
+        "zh": "基线中可索引的页面已不存在，也没有重定向承接。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes"
+    },
+    {
+      "id": "D-PAGE-NOINDEXED",
+      "family": "D",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Page became noindex",
+        "zh": "页面变成了 noindex"
+      },
+      "description": {
+        "en": "A page that was indexable in the baseline now carries noindex.",
+        "zh": "基线中可索引的页面现在带有 noindex。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/block-indexing"
+    },
+    {
+      "id": "D-CANONICAL-CHANGED",
+      "family": "D",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Canonical changed",
+        "zh": "Canonical 发生变化"
+      },
+      "description": {
+        "en": "The page's canonical URL differs from the baseline.",
+        "zh": "页面的 canonical URL 与基线不同。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "D-HREFLANG-LOST",
+      "family": "D",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "hreflang alternates lost",
+        "zh": "hreflang 备选丢失"
+      },
+      "description": {
+        "en": "Alternates present in the baseline are no longer declared.",
+        "zh": "基线中的 hreflang 备选不再声明。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/specialty/international/localized-versions"
+    },
+    {
+      "id": "D-JSONLD-TYPE-LOST",
+      "family": "D",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Structured data type lost",
+        "zh": "结构化数据类型丢失"
+      },
+      "description": {
+        "en": "A JSON-LD @type present in the baseline is gone.",
+        "zh": "基线中的 JSON-LD @type 已消失。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
+    },
+    {
+      "id": "D-CONTENT-SHRUNK",
+      "family": "D",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Page content shrank sharply",
+        "zh": "页面内容大幅减少"
+      },
+      "description": {
+        "en": "Visible words dropped by half or more versus the baseline.",
+        "zh": "可见文字比基线减少一半或更多。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "D-SITEMAP-URL-DROPPED",
+      "family": "D",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "URL dropped from the sitemap",
+        "zh": "URL 从 sitemap 中移除"
+      },
+      "description": {
+        "en": "A URL listed in the baseline sitemap is no longer listed while the page still exists.",
+        "zh": "基线 sitemap 中的 URL 已被移除，但页面仍然存在。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap"
+    },
+    {
+      "id": "D-INDEXABLE-DROP",
+      "family": "D",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Indexable page count dropped",
+        "zh": "可索引页面数量下降"
+      },
+      "description": {
+        "en": "The number of indexable pages fell by 10% or more versus the baseline.",
+        "zh": "可索引页面数量比基线下降 10% 或更多。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    }
+  ]
+}

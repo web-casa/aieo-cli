@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aieo.ee/schemas/rules.schema.json",
+  "title": "AIEO rule specification",
+  "type": "object",
+  "required": ["version", "rules"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "rules": { "type": "array", "items": { "$ref": "#/definitions/rule" } }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "localized": {
+      "type": "object",
+      "required": ["en", "zh"],
+      "properties": { "en": { "type": "string", "minLength": 1 }, "zh": { "type": "string", "minLength": 1 } },
+      "additionalProperties": false
+    },
+    "tierOrNull": { "enum": ["error", "warning", "notice", null] },
+    "rule": {
+      "type": "object",
+      "required": ["id", "family", "scope", "class", "weight", "title", "description", "tier", "modes", "evidence_level", "implementations", "default_enabled"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^([FGHP]\\d{2}|[TCDKL]-[A-Z0-9-]+)$" },
+        "family": { "enum": ["F", "G", "H", "P", "T", "C", "D", "K", "L"] },
+        "scope": { "enum": ["site", "page"] },
+        "class": { "enum": ["scoring", "bonus", "info", "finding"] },
+        "weight": { "type": "number", "minimum": 0 },
+        "category": { "type": "string" },
+        "title": { "$ref": "#/definitions/localized" },
+        "description": { "$ref": "#/definitions/localized" },
+        "tier": {
+          "type": "object",
+          "properties": {
+            "default": { "$ref": "#/definitions/tierOrNull" },
+            "fail": { "$ref": "#/definitions/tierOrNull" },
+            "partial": { "$ref": "#/definitions/tierOrNull" }
+          },
+          "additionalProperties": false
+        },
+        "modes": { "type": "array", "minItems": 1, "items": { "enum": ["url", "dist", "config", "logs", "search"] } },
+        "evidence_level": { "enum": ["official", "heuristic"] },
+        "source_url": { "type": "string", "pattern": "^https://" },
+        "implementations": { "type": "array", "minItems": 1, "items": { "enum": ["ts", "rust"] } },
+        "default_enabled": { "type": "boolean" },
+        "saas_issue_type": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

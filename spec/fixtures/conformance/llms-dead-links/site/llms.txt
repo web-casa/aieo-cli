@@ -1,0 +1,8 @@
+# Acme
+
+> Product analytics.
+
+## Product
+- [features](/features): what it does
+- [gone](/gone-page): removed
+- [pricing](/pricing): plans
