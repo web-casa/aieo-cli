@@ -1,6 +1,6 @@
 ---
 name: aieo-indexing
-description: Work out why pages of a site are not indexed or show the wrong canonical in Google, and tell Bing and other IndexNow engines about changed pages — using the user's own Search Console and Bing Webmaster access, read against the site's build. Use when the user asks "why isn't this page on Google", "Google picked a different canonical", "submit my new pages", "set up IndexNow", or "did my clicks drop".
+description: Work out why pages of a site are not indexed or show the wrong canonical in Google, and tell Bing and other IndexNow engines about changed pages — using the user's own Search Console and Bing Webmaster access, read against the site's build. Use when the user asks "why isn't this page on Google", "Google picked a different canonical", "submit my new pages", "set up IndexNow", or "did my clicks drop". Also for 页面不收录, Google 收录, 提交到 Bing, IndexNow.
 ---
 
 # Indexing: Search Console, Bing, IndexNow

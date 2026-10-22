@@ -1,6 +1,6 @@
 ---
 name: aieo-llms-txt
-description: Write or fix a site's llms.txt (and llms-full.txt) from the pages the build actually contains, and check that every link in it resolves to an indexable, canonical page. Use when the user asks to "add llms.txt", "generate llms.txt", "is my llms.txt correct", or aieo reports F16, C-LLMS-LINK-BROKEN or C-LLMS-LINK-NOINDEX.
+description: Write or fix a site's llms.txt (and llms-full.txt) from the pages the build actually contains, and check that every link in it resolves to an indexable, canonical page. Use when the user asks to "add llms.txt", "generate llms.txt", "is my llms.txt correct", or aieo reports F16, C-LLMS-LINK-BROKEN or C-LLMS-LINK-NOINDEX. Also for 生成 / 添加 llms.txt.
 ---
 
 # llms.txt from the build

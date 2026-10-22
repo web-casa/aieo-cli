@@ -1,6 +1,6 @@
 ---
 name: aieo
-description: Check a website's build output for SEO and GEO (AI-search) defects with the aieo CLI and fix them in the source files — sitemap, robots.txt, canonical, hreflang, broken links, llms.txt, structured data, framework and hosting config; read crawler logs and Search Console / Bing data against the build. Use when the user asks to audit or fix SEO / AI-search readiness of a site they build locally (Astro, Starlight, Next.js, Nuxt, Vue, TanStack, Hugo, VitePress, Docusaurus or any static build), to check a build before deploying, to see whether AI crawlers reach their pages, or why Google does not index a page.
+description: Check a website's build output for SEO and GEO (AI-search) defects with the aieo CLI and fix them in the source files — sitemap, robots.txt, canonical, hreflang, broken links, llms.txt, structured data, framework and hosting config; read crawler logs and Search Console / Bing data against the build. Use when the user asks to audit or fix SEO / AI-search readiness of a site they build locally (Astro, Starlight, Next.js, Nuxt, Vue, TanStack, Hugo, VitePress, Docusaurus or any static build), to check a build before deploying, to see whether AI crawlers reach their pages, or why Google does not index a page. Also for 网站 SEO 检查, AI 搜索 / GEO 优化, 上线前检查, sitemap / canonical / 死链.
 ---
 
 # aieo — SEO / GEO checks for a site's build

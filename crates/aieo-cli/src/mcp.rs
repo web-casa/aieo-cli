@@ -360,8 +360,9 @@ impl Aieo {
         ))
     }
 
-    /// Crawler and AI-referral evidence from the ingested access logs (`aieo logs ingest`):
-    /// per-crawler requests and verification, coverage of indexable pages, AI referrals, L findings.
+    /// Crawler and AI-referral evidence from access logs: per-crawler requests and verification
+    /// (published IP ranges), coverage of indexable pages, AI referrals, L findings. Needs
+    /// `aieo logs ingest <files>` once (local: reads the files into .aieo/logs.db, sends nothing).
     #[tool(annotations(title = "Access-log report", read_only_hint = true))]
     async fn logs_report(&self, Parameters(p): Parameters<LogsParams>) -> Result<String, String> {
         let window = crate::logs::Window {
@@ -494,7 +495,8 @@ impl ServerHandler for Aieo {
                 "aieo checks a website's build output for SEO / GEO defects and reads crawler logs and \
                  search-engine data against it. Build the site, call `check` (or `diff` against the \
                  baseline), fix findings in the reported source_file, rebuild and check again. \
-                 `explain_rule` says why a rule matters. Nothing here writes outside the project: \
+                 `explain_rule` says why a rule matters. For access logs, run `aieo logs ingest <files>` \
+                 first (local only), then `logs_report`. Nothing here writes outside the project: \
                  IndexNow and aieo.ee uploads are returned as plans for a person to run.",
             )
     }

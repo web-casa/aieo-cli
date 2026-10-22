@@ -33,7 +33,7 @@ dependencies = [
 
 [[package]]
 name = "aieo-cli"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "aieo-core",
  "aieo-logs",
@@ -57,7 +57,7 @@ dependencies = [
 
 [[package]]
 name = "aieo-core"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "anyhow",
  "flate2",
@@ -71,7 +71,7 @@ dependencies = [
 
 [[package]]
 name = "aieo-logs"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "aieo-core",
  "aieo-rules",
@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "aieo-report"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "aieo-core",
  "aieo-rules",
@@ -110,7 +110,7 @@ dependencies = [
 
 [[package]]
 name = "aieo-rules"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "aieo-core",
  "aieo-site",
@@ -128,7 +128,7 @@ dependencies = [
 
 [[package]]
 name = "aieo-search"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "aieo-core",
  "aieo-rules",
@@ -148,7 +148,7 @@ dependencies = [
 
 [[package]]
 name = "aieo-site"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "aieo-core",
  "anyhow",

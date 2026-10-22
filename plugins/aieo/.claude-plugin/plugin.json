@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
   "name": "aieo",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Check a site's build output for SEO and AI-search defects (sitemap, robots.txt, canonical, hreflang, links, llms.txt, structured data, framework and hosting config) and fix them in the source files. Needs the aieo CLI on PATH.",
   "author": {
     "name": "Web-Casa",

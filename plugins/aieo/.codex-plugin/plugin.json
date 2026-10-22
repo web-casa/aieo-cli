@@ -1,6 +1,6 @@
 {
   "name": "aieo",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Check a site's build output for SEO and AI-search defects and fix them in the source files; read crawler logs and Search Console data against the build. Needs the aieo CLI on PATH.",
   "author": {
     "name": "Web-Casa",

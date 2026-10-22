@@ -1,6 +1,6 @@
 ---
 name: aieo-ci
-description: Add an aieo SEO / AI-search check to a site's CI so pull requests fail only on problems they introduce — GitHub Actions (annotations, SARIF code scanning) or GitLab CI (JUnit report on merge requests), with a baseline snapshot. Use when the user wants to stop SEO regressions (broken links, sitemap, canonical, hreflang, noindex, redirects) from shipping, or asks to "add aieo to CI", "check the build on every PR".
+description: Add an aieo SEO / AI-search check to a site's CI so pull requests fail only on problems they introduce — GitHub Actions (annotations, SARIF code scanning) or GitLab CI (JUnit report on merge requests), with a baseline snapshot. Use when the user wants to stop SEO regressions (broken links, sitemap, canonical, hreflang, noindex, redirects) from shipping, or asks to "add aieo to CI", "check the build on every PR". Also for CI 里加 SEO 检查, 防止 SEO 回归.
 ---
 
 # Put aieo in CI
@@ -32,7 +32,7 @@ steps:
   # … checkout, install, build …
   - uses: web-casa/aieo-cli@v1
     with:
-      version: 1.1.0              # prebuilt binary; the default builds from source
+      version: 1.1.1              # prebuilt binary; the default builds from source
       command: diff               # "check" when there is no baseline
       upload-sarif: "true"
 ```
@@ -45,7 +45,7 @@ adding others.
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/web-casa/aieo-cli/v1.1.0/ci/gitlab-ci.yml
+  - remote: https://raw.githubusercontent.com/web-casa/aieo-cli/v1.1.1/ci/gitlab-ci.yml
 
 aieo:
   extends: .aieo

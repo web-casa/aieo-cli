@@ -301,7 +301,7 @@ pub(crate) fn build_report(
     let path = db_path(&target.project);
     if !path.is_file() {
         bail!(
-            "no logs yet: run `aieo logs ingest <files>` first ({} missing)",
+            "no logs yet: run `aieo logs ingest <files>` first — it reads the files on this machine into {} and sends nothing, so an agent may run it",
             path.display()
         );
     }

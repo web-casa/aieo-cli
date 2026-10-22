@@ -1,6 +1,6 @@
 ---
 name: aieo-crawlers
-description: Find out from server or CDN access logs whether search and AI crawlers (Googlebot, Bingbot, GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, …) reach a site's pages, which ones are blocked, erroring or spoofed, which pages they never fetch, and which pages visitors reach from AI answers. Use when the user asks "do AI crawlers visit my site", "is Cloudflare / the WAF blocking GPTBot", "why is my site not in ChatGPT / Perplexity", or has Nginx, Apache, Caddy, Cloudflare, Vercel or CloudFront logs.
+description: Find out from server or CDN access logs whether search and AI crawlers (Googlebot, Bingbot, GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, …) reach a site's pages, which ones are blocked, erroring or spoofed, which pages they never fetch, and which pages visitors reach from AI answers. Use when the user asks "do AI crawlers visit my site", "is Cloudflare / the WAF blocking GPTBot", "why is my site not in ChatGPT / Perplexity", or has Nginx, Apache, Caddy, Cloudflare, Vercel or CloudFront logs. Also for AI 爬虫被挡, ChatGPT / Perplexity 不引用, 访问日志 / 服务器日志分析.
 ---
 
 # Crawler evidence from access logs
