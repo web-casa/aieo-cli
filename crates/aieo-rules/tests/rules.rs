@@ -443,3 +443,48 @@ fn an_upgrade_alone_never_fails_a_diff() {
         .iter()
         .any(|f| f.status == FindingStatus::New && spec().rule_existed_in(&f.rule, "2.0.0")));
 }
+
+#[test]
+fn robots_blocks_all_means_the_whole_site() {
+    let robots_case = |robots: &str| {
+        let files = vec![
+            ("index.html", page("en", "Home", &format!("{O}/"), "", "")),
+            (
+                "guide/index.html",
+                page("en", "Guide", &format!("{O}/guide/"), "", ""),
+            ),
+            (
+                "about/index.html",
+                page("en", "About", &format!("{O}/about/"), "", ""),
+            ),
+            ("robots.txt", robots.to_string()),
+        ];
+        let (_d, site) = build(&files);
+        let s = settings();
+        let o = check(
+            &site,
+            &Options {
+                settings: &s,
+                project: None,
+                rendering: None,
+                baseline: None,
+            },
+        );
+        let h = hits(&o);
+        (
+            h.iter().any(|(r, _)| r == "C-ROBOTS-BLOCKS-ALL"),
+            h.iter().any(|(r, _)| r == "C-ROBOTS-AI-SEARCH-BLOCKED"),
+        )
+    };
+    assert!(robots_case("User-agent: *\nDisallow: /\n").0);
+    // the homepage only
+    assert!(!robots_case("User-agent: *\nDisallow: /$\n").0);
+    // everything but the homepage
+    assert!(robots_case("User-agent: *\nDisallow: /\nAllow: /$\n").0);
+    // an AI search crawler kept off the homepage is reported, and so is one
+    // kept off everything but the homepage
+    assert!(robots_case("User-agent: OAI-SearchBot\nDisallow: /\nAllow: /guide/\n").1);
+    assert!(robots_case("User-agent: OAI-SearchBot\nDisallow: /\nAllow: /$\n").1);
+    assert!(!robots_case("User-agent: OAI-SearchBot\nDisallow: /guide/\n").1);
+    assert!(robots_case("User-agent: OAI-SearchBot\nDisallow: /\n").1);
+}

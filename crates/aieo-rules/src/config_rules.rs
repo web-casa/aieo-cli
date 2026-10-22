@@ -98,7 +98,12 @@ fn origin(c: &Ctx, p: &Project, e: &mut Emitter) {
         ),
         ev("Checked origin", "检查的站点来源", ours.clone()),
     ];
-    match config_at(p, Some(key)) {
+    let at = p
+        .site_at
+        .clone()
+        .map(|(file, line)| (file, Some(line)))
+        .or_else(|| config_at(p, Some(key)));
+    match at {
         Some((file, line)) => e.emit_config(
             "K-SITE-ORIGIN-MISMATCH",
             None,
@@ -268,6 +273,12 @@ fn redirects(c: &Ctx, e: &mut Emitter) {
         let Some(rule) = rules.iter().find(|r| r.from == chain[0]) else {
             continue;
         };
+        // an existing file shadows unforced rules (Netlify, Cloudflare
+        // Pages): only a loop that following the URL really meets counts
+        let start = Url::parse(&site.url_for(&chain[0]));
+        if !start.is_ok_and(|u| site.follow_http(&u).looped) {
+            continue;
+        }
         e.emit_config(
             "K-REDIRECT-LOOP",
             Some(chain[0].clone()),
@@ -351,6 +362,12 @@ fn header_noindex(c: &Ctx, e: &mut Emitter) {
             .filter(|p| {
                 p.kind == PageKind::Content
                     && site.header_rules().rule_matches(i, site.host(), &p.path)
+                    // a later rule may remove it again (`! X-Robots-Tag` in _headers)
+                    && site
+                        .header_rules()
+                        .for_request(site.host(), &p.path)
+                        .iter()
+                        .any(|(n, v)| n == "x-robots-tag" && says_noindex(v))
             })
             .collect();
         if hit.is_empty() {

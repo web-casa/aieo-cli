@@ -1,15 +1,15 @@
 //! T (per page) and C (cross-artifact) rules over a build's page inventory.
 
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::sync::LazyLock;
 
-use regex::Regex;
 use url::Url;
 
 use aieo_core::spec::spec;
 use aieo_core::text::utf16_len;
 use aieo_core::{Evidence, Localized};
-use aieo_site::robots::{evaluate_path, parse_robots, rules_for_agent, PathDecision, RobotsFile};
+use aieo_site::robots::{
+    evaluate_path, parse_robots, rules_for_agent, PathDecision, RobotsFile, RobotsGroup,
+};
 use aieo_site::sitemap::{decode_xml_entities, parse_sitemap, SitemapKind};
 use aieo_site::Site;
 
@@ -50,9 +50,54 @@ pub struct Checker<'a> {
     home_path: String,
 }
 
-static HREFLANG_CODE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)^(x-default|[a-z]{2,3}(-[a-z]{4})?(-([a-z]{2}|[0-9]{3}))?)$").unwrap()
-});
+/// Why an hreflang value is not one Google accepts, or None: `x-default`, or
+/// an ISO 639-1 language (3-letter BCP 47 languages pass on their shape),
+/// optionally an ISO 15924 script, optionally an ISO 3166-1 alpha-2 region
+/// or a UN M.49 area (`es-419`).
+fn hreflang_problem(code: &str) -> Option<String> {
+    let lower = code.to_ascii_lowercase();
+    if lower == "x-default" {
+        return None;
+    }
+    let mut parts = lower.split('-');
+    let lang = parts.next().unwrap_or_default();
+    let alpha = |s: &str| !s.is_empty() && s.bytes().all(|b| b.is_ascii_lowercase());
+    match lang.len() {
+        2 if crate::iso::ISO_639_1.binary_search(&lang).is_ok() => {}
+        2 => return Some(format!("“{lang}” is not an ISO 639-1 language code")),
+        3 if alpha(lang) => {}
+        _ => return Some(format!("“{lang}” is not a language code")),
+    }
+    let mut rest: Vec<&str> = parts.collect();
+    if rest.first().is_some_and(|s| s.len() == 4 && alpha(s)) {
+        let script = rest.remove(0);
+        let titled = format!("{}{}", script[..1].to_ascii_uppercase(), &script[1..]);
+        if crate::iso::ISO_15924
+            .binary_search(&titled.as_str())
+            .is_err()
+        {
+            return Some(format!("“{titled}” is not an ISO 15924 script"));
+        }
+    }
+    match rest.as_slice() {
+        [] => None,
+        [r] if r.len() == 3 && r.bytes().all(|b| b.is_ascii_digit()) => None,
+        [r] if r.len() == 2 && alpha(r) => {
+            let upper = r.to_ascii_uppercase();
+            if crate::iso::ISO_3166_1
+                .binary_search(&upper.as_str())
+                .is_ok()
+            {
+                None
+            } else if upper == "UK" {
+                Some("“UK” is not an ISO 3166-1 region; the United Kingdom is “GB”".into())
+            } else {
+                Some(format!("“{upper}” is not an ISO 3166-1 region code"))
+            }
+        }
+        _ => Some("expected language[-Script][-REGION]".into()),
+    }
+}
 
 fn page_loc(p: &PageFacts) -> Loc {
     Loc {
@@ -474,13 +519,16 @@ impl<'a> Checker<'a> {
             let mut lists_self = false;
             for h in &p.hreflang {
                 let needle = Some(format!("hreflang=\"{}\"", h.code));
-                if !HREFLANG_CODE.is_match(&h.code) {
+                if let Some(problem) = hreflang_problem(&h.code) {
                     e.emit(
                         "C-HREFLANG-INVALID-CODE",
                         None,
                         page_loc(p),
                         &h.code,
-                        vec![ev("hreflang", "hreflang", h.code.clone())],
+                        vec![
+                            ev("hreflang", "hreflang", h.code.clone()),
+                            ev("Problem", "问题", problem),
+                        ],
                         needle.clone(),
                     );
                 }
@@ -547,7 +595,7 @@ impl<'a> Checker<'a> {
         }
     }
 
-    fn robots_group_for(&self, agent: &str) -> Option<aieo_site::robots::RobotsGroup> {
+    fn robots_group_for(&self, agent: &str) -> Option<RobotsGroup> {
         self.robots.as_ref().and_then(|r| rules_for_agent(r, agent))
     }
 
@@ -733,6 +781,33 @@ impl<'a> Checker<'a> {
         }
     }
 
+    /// Whether a robots group shuts the site out: every content page but the
+    /// homepage is disallowed (a one-page site: the homepage). `Disallow: /$`
+    /// alone blocks the homepage only; `Disallow: /` with `Allow: /$` blocks
+    /// the rest. Returns (pages disallowed, content pages).
+    fn blocks_site(&self, group: Option<&RobotsGroup>) -> Option<(usize, usize)> {
+        let home = format!("{}/", self.site.base_path);
+        let pages: Vec<&str> = self
+            .pages
+            .iter()
+            .filter(|p| p.kind == PageKind::Content)
+            .map(|p| p.path.as_str())
+            .collect();
+        let disallowed = |path: &str| evaluate_path(group, path) == PathDecision::Disallow;
+        let rest: Vec<&str> = pages.iter().copied().filter(|p| *p != home).collect();
+        let shut = if rest.is_empty() {
+            disallowed(&home)
+        } else {
+            rest.iter().all(|p| disallowed(p))
+        };
+        shut.then(|| {
+            (
+                pages.iter().filter(|p| disallowed(p)).count(),
+                pages.len().max(1),
+            )
+        })
+    }
+
     fn robots_rules(&self, e: &mut Emitter) {
         let Some(robots) = &self.robots else { return };
         let base = &self.site.base_path;
@@ -748,13 +823,17 @@ impl<'a> Checker<'a> {
             .any(|g| g.agents.iter().any(|a| a == "*"))
             .then(|| rules_for_agent(robots, "*"))
             .flatten();
-        if evaluate_path(star.as_ref(), "/") == PathDecision::Disallow {
+        if let Some((blocked, total)) = self.blocks_site(star.as_ref()) {
             e.emit(
                 "C-ROBOTS-BLOCKS-ALL",
                 None,
                 loc(),
                 "",
-                vec![ev("User-agent: *", "User-agent: *", "Disallow: /")],
+                vec![ev(
+                    "User-agent: *",
+                    "User-agent: *",
+                    format!("disallows {blocked} of {total} pages"),
+                )],
                 Some("Disallow: /".into()),
             );
         }
@@ -769,7 +848,10 @@ impl<'a> Checker<'a> {
             if !group.agents.iter().any(|a| a == &c.robots_token) {
                 continue;
             }
-            if evaluate_path(Some(&group), "/") == PathDecision::Disallow {
+            // the homepage, or everything but it
+            if evaluate_path(Some(&group), "/") == PathDecision::Disallow
+                || self.blocks_site(Some(&group)).is_some()
+            {
                 e.emit(
                     "C-ROBOTS-AI-SEARCH-BLOCKED",
                     None,
@@ -859,5 +941,32 @@ impl<'a> Checker<'a> {
                 None => {}
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod hreflang_tests {
+    use super::hreflang_problem;
+
+    #[test]
+    fn hreflang_codes_follow_iso() {
+        for ok in [
+            "en",
+            "en-GB",
+            "zh-Hant",
+            "zh-Hant-TW",
+            "es-419",
+            "x-default",
+            "fil",
+            "EN-us",
+        ] {
+            assert_eq!(hreflang_problem(ok), None, "{ok}");
+        }
+        for bad in [
+            "en-UK", "jp", "cn", "us", "en-XX", "zh-Hanx", "english", "en-GB-x",
+        ] {
+            assert!(hreflang_problem(bad).is_some(), "{bad}");
+        }
+        assert!(hreflang_problem("en-UK").unwrap().contains("GB"));
     }
 }

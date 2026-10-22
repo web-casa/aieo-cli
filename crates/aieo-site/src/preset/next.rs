@@ -85,15 +85,17 @@ pub(super) fn configure(p: &mut Project) {
         p.default_dist = dist_dir;
         p.rendering = Rendering::Hybrid;
     }
-    if let Some(site) = metadata_base(&p.root) {
+    if let Some((site, file, line)) = metadata_base(&p.root) {
         p.site = Some(site);
         p.site_key = Some("metadataBase".into());
+        p.site_at = Some((file, line));
     }
     index_sources(p);
 }
 
-/// `metadataBase: new URL("https://…")` in the root layout.
-fn metadata_base(root: &Path) -> Option<String> {
+/// `metadataBase: new URL("https://…")` in the root layout: the origin, the
+/// layout file and the line.
+fn metadata_base(root: &Path) -> Option<(String, String, usize)> {
     let re =
         regex::Regex::new(r#"metadataBase\s*:\s*new\s+URL\(\s*["'`](https?://[^"'`$]+)["'`]\s*\)"#)
             .ok()?;
@@ -104,7 +106,8 @@ fn metadata_base(root: &Path) -> Option<String> {
                 continue;
             };
             if let Some(c) = re.captures(&text) {
-                return Some(c[1].to_string());
+                let line = text[..c.get(0)?.start()].matches('\n').count() + 1;
+                return Some((c[1].to_string(), format!("{dir}/layout.{ext}"), line));
             }
         }
     }

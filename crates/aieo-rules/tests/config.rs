@@ -283,3 +283,88 @@ fn multipage_modules_judge_consistency() {
         p04.evidence
     );
 }
+
+#[test]
+fn hugo_and_next_origin_findings_point_at_the_declaring_line() {
+    // Hugo keys are case-insensitive (stored lower-case): baseURL still has a line
+    let d = tempfile::tempdir().unwrap();
+    let r = d.path();
+    write(
+        r,
+        "hugo.toml",
+        "title = 'x'\nbaseURL = 'https://staging.example/docs/'\n",
+    );
+    write(r, "content/_index.md", "# x\n");
+    write(
+        r,
+        "public/index.html",
+        &page("Home", &format!("{O}/docs/"), ""),
+    );
+    let h = hits(&run(r));
+    assert!(
+        h.contains(&("K-SITE-ORIGIN-MISMATCH".into(), "hugo.toml:2".into())),
+        "{h:#?}"
+    );
+
+    // Next.js: the origin comes from metadataBase in the root layout
+    let d = tempfile::tempdir().unwrap();
+    let r = d.path();
+    write(
+        r,
+        "next.config.mjs",
+        "export default { output: 'export' };\n",
+    );
+    write(
+        r,
+        "app/layout.tsx",
+        "import type { Metadata } from 'next';\n\nexport const metadata: Metadata = {\n  metadataBase: new URL('https://staging.example'),\n};\n",
+    );
+    write(r, "out/index.html", &page("Home", &format!("{O}/"), ""));
+    let h = hits(&run(r));
+    assert!(
+        h.contains(&("K-SITE-ORIGIN-MISMATCH".into(), "app/layout.tsx:4".into())),
+        "{h:#?}"
+    );
+}
+
+#[test]
+fn netlify_shadowing_and_header_removal_are_not_defects() {
+    let d = tempfile::tempdir().unwrap();
+    let r = d.path();
+    write(r, "dist/index.html", &page("Home", &format!("{O}/"), ""));
+    write(r, "dist/a/index.html", &page("A", &format!("{O}/a/"), ""));
+    write(r, "dist/b/index.html", &page("B", &format!("{O}/b/"), ""));
+    write(
+        r,
+        "dist/sitemap.xml",
+        &format!("<urlset><url><loc>{O}/</loc></url><url><loc>{O}/b/</loc></url></urlset>"),
+    );
+    // /a → /b is shadowed by b/index.html (unforced); /c ↔ /d really loops
+    write(
+        r,
+        "dist/_redirects",
+        "/a/ /b/ 301\n/b/ /a/ 301\n/c/ /d/ 301!\n/d/ /c/ 301!\n",
+    );
+    // noindex everywhere, then removed again for the whole site but /drafts
+    write(
+        r,
+        "dist/_headers",
+        "/*\n  X-Robots-Tag: noindex\n/*\n  ! X-Robots-Tag\n",
+    );
+    let o = run(r);
+    let loops: Vec<_> = o
+        .findings
+        .iter()
+        .filter(|f| f.rule == "K-REDIRECT-LOOP")
+        .map(|f| f.url.clone().unwrap_or_default())
+        .collect();
+    assert_eq!(loops.len(), 1, "{loops:?}");
+    assert!(
+        loops[0].ends_with("/c/") || loops[0].ends_with("/d/"),
+        "{loops:?}"
+    );
+    assert!(
+        !o.findings.iter().any(|f| f.rule == "K-HEADERS-NOINDEX"),
+        "the header is removed again"
+    );
+}

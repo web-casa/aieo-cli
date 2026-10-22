@@ -122,6 +122,9 @@ pub struct Project {
     /// production origin and the config key it came from
     pub site: Option<String>,
     pub site_key: Option<String>,
+    /// where the origin is declared when that is not the framework config
+    /// (Next.js `metadataBase` in `app/layout.tsx`): file and line
+    pub site_at: Option<(String, usize)>,
     /// URL prefix the site is served under (`/docs`), never `/`
     pub base: Option<String>,
     pub base_key: Option<String>,
@@ -227,6 +230,7 @@ pub fn detect(root: &Path, forced: Option<PresetKind>) -> Project {
         config: None,
         site: None,
         site_key: None,
+        site_at: None,
         base: None,
         base_key: None,
         trailing_slash: None,

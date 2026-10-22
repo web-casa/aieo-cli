@@ -29,16 +29,25 @@ pub struct ConfigFile {
 }
 
 impl ConfigFile {
+    /// The value for `key`, or for its lower-case form: Hugo keys are case
+    /// insensitive and stored lower-case, while findings name them as
+    /// written in the docs (`baseURL`).
+    fn value(&self, key: &str) -> Option<&ConfigValue> {
+        self.values
+            .get(key)
+            .or_else(|| self.values.get(&key.to_ascii_lowercase()))
+    }
+
     pub fn get(&self, key: &str) -> Option<&str> {
-        self.values.get(key)?.value.as_deref()
+        self.value(key)?.value.as_deref()
     }
 
     pub fn has(&self, key: &str) -> bool {
-        self.values.contains_key(key)
+        self.value(key).is_some()
     }
 
     pub fn line(&self, key: &str) -> Option<usize> {
-        self.values.get(key).map(|v| v.line)
+        self.value(key).map(|v| v.line)
     }
 
     pub fn bool(&self, key: &str) -> Option<bool> {
