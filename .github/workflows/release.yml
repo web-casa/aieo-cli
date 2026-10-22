@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           if [ "${{ matrix.musl }}" = "true" ]; then
-            export CC_$(echo "${{ matrix.target }}" | tr '-' '_')=musl-gcc
+            export "CC_$(echo "${{ matrix.target }}" | tr '-' '_')=musl-gcc"
           fi
           cargo build --release --locked -p aieo-cli --target ${{ matrix.target }}
       - name: Package

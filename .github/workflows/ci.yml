@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: [main, "ci/**"]   # ci/* branches: try CI changes without a PR
   pull_request:
 
 jobs:
@@ -41,3 +41,34 @@ jobs:
           site: https://fixture.example
           fail-on: never
       - run: test -f /tmp/site/aieo.sarif && test -f /tmp/site/.aieo/bundle.json.gz
+
+  action-release:
+    # the action as users run it: the latest release's prebuilt binary, and a
+    # gate that fails on an error (C-SITEMAP-URL-NOINDEX)
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fixture build with a noindex page in the sitemap
+        run: |
+          mkdir -p "$RUNNER_TEMP/site/dist"
+          cp -r spec/fixtures/conformance/good-site/site/. "$RUNNER_TEMP/site/dist/"
+          perl -pi -e 's#<head>#<head><meta name="robots" content="noindex">#' "$RUNNER_TEMP/site/dist/pricing.html"
+          find "$RUNNER_TEMP/site/dist" -type f -exec perl -pi -e 's#\{\{origin\}\}#https://fixture.example#g' {} +
+      - id: aieo
+        uses: ./
+        continue-on-error: true
+        with:
+          version: latest
+          working-directory: ${{ runner.temp }}/site
+          site: https://fixture.example
+          upload-sarif: "false"
+      - name: The release binary ran and the gate failed
+        shell: bash
+        run: |
+          aieo --version
+          [ "$(command -v aieo)" != "" ]
+          [ "${{ steps.aieo.outputs.exit-code }}" = "1" ] || { echo "::error::exit-code ${{ steps.aieo.outputs.exit-code }}, want 1"; exit 1; }

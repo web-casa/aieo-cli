@@ -22,13 +22,18 @@ mkdir -p "$bin_dir"
 if [ "$version" = "source" ]; then
   root="${ACTION_PATH:-$(cd "$(dirname "$0")/.." && pwd)}"
   cargo build --release --locked --manifest-path "$root/Cargo.toml" -p aieo-cli
-  cp "$root/target/release/aieo" "$bin_dir/"
+  if [ -f "$root/target/release/aieo.exe" ]; then
+    cp "$root/target/release/aieo.exe" "$bin_dir/"
+  else
+    cp "$root/target/release/aieo" "$bin_dir/"
+  fi
 else
   case "$(uname -s)-$(uname -m)" in
     Linux-x86_64) target=x86_64-unknown-linux-musl ;;
     Linux-aarch64 | Linux-arm64) target=aarch64-unknown-linux-musl ;;
     Darwin-arm64) target=aarch64-apple-darwin ;;
     Darwin-x86_64) target=x86_64-apple-darwin ;;
+    MINGW*-x86_64 | MSYS*-x86_64 | CYGWIN*-x86_64) target=x86_64-pc-windows-msvc ;;
     *) echo "aieo: no prebuilt binary for $(uname -s)-$(uname -m); use: cargo install --git https://github.com/$repo aieo-cli" >&2; exit 1 ;;
   esac
   if [ "$version" = "latest" ]; then
@@ -38,18 +43,26 @@ else
     version="${tag#v}"
   fi
   version="${version#v}"
-  asset="aieo-v${version}-${target}.tar.gz"
+  case "$target" in
+    *windows*) ext=zip exe=aieo.exe ;;
+    *) ext=tar.gz exe=aieo ;;
+  esac
+  asset="aieo-v${version}-${target}.${ext}"
   url="https://github.com/${repo}/releases/download/v${version}/${asset}"
   tmp=$(mktemp -d)
   trap 'rm -rf "$tmp"' EXIT
   curl -fsSL "$url" -o "$tmp/$asset"
   curl -fsSL "$url.sha256" -o "$tmp/$asset.sha256"
   (cd "$tmp" && if command -v sha256sum >/dev/null; then sha256sum -c "$asset.sha256"; else shasum -a 256 -c "$asset.sha256"; fi) >/dev/null
-  tar -xzf "$tmp/$asset" -C "$tmp"
-  mv "$tmp/aieo" "$bin_dir/aieo"
+  if [ "$ext" = zip ]; then
+    unzip -q -o "$tmp/$asset" -d "$tmp"
+  else
+    tar -xzf "$tmp/$asset" -C "$tmp"
+  fi
+  mv "$tmp/$exe" "$bin_dir/$exe"
 fi
 
-chmod +x "$bin_dir/aieo"
+[ -f "$bin_dir/aieo.exe" ] || chmod +x "$bin_dir/aieo"
 if [ -n "${GITHUB_PATH:-}" ]; then
   echo "$bin_dir" >> "$GITHUB_PATH"
 fi

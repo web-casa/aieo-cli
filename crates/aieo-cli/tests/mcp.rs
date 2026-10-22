@@ -90,6 +90,32 @@ fn serves_read_only_tools_over_stdio() {
     assert_eq!(body["site"], "https://docs.t.example");
     assert_eq!(body["pages"], 1);
 
+    // every tool that reads a project honours `project`
+    let mut id = 10;
+    let mut tool = |name: &str, args: Value| -> Value {
+        id += 1;
+        let r = call(json!({"jsonrpc":"2.0","id":id,"method":"tools/call","params":{"name":name,"arguments":args}})).unwrap();
+        r["result"].clone()
+    };
+    let text = |r: &Value| r["content"][0]["text"].as_str().unwrap().to_string();
+    let page = tool("page", json!({"project":"apps/docs","url":"/"}));
+    assert!(text(&page).contains("https://docs.t.example/"), "{page}");
+    let push = tool("push_plan", json!({"project":"apps/docs"}));
+    assert!(text(&push).contains("https://docs.t.example"), "{push}");
+    for name in ["diff", "indexnow_plan"] {
+        let r = tool(name, json!({"project":"apps/docs"}));
+        assert_eq!(r["isError"], true, "{name}: no baseline in apps/docs");
+        assert!(text(&r).contains("aieo snapshot"), "{name}: {r}");
+    }
+    let logs = tool("logs_report", json!({"project":"apps/docs"}));
+    assert!(
+        text(&logs).contains(&format!("apps{0}docs{0}.aieo", std::path::MAIN_SEPARATOR)),
+        "logs_report looks in the project: {logs}"
+    );
+    let search = tool("search_report", json!({"project":"apps/docs"}));
+    assert_eq!(search["isError"], true);
+    assert!(text(&search).contains("aieo search"));
+
     let logs = call(json!({"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"logs_report","arguments":{}}})).unwrap();
     assert_eq!(logs["result"]["isError"], true);
     assert!(logs["result"]["content"][0]["text"]
