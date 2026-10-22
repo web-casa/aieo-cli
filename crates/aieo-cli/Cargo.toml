@@ -15,11 +15,14 @@ path = "src/main.rs"
 [dependencies]
 aieo-core.workspace = true
 aieo-logs.workspace = true
+aieo-search.workspace = true
 aieo-report.workspace = true
 aieo-rules.workspace = true
 aieo-site.workspace = true
 anyhow.workspace = true
 clap.workspace = true
+rpassword.workspace = true
+serde_json.workspace = true
 time.workspace = true
 url.workspace = true
 

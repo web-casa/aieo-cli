@@ -27,7 +27,7 @@ pub struct Bundle {
     pub diff: Option<DiffInfo>,
     pub summary: Summary,
     pub logs: Option<Logs>,
-    pub search: Option<serde_json::Value>,
+    pub search: Option<Search>,
     pub privacy: Privacy,
 }
 
@@ -187,6 +187,92 @@ pub struct Summary {
     pub gate: Gate,
     pub incomplete: bool,
     pub incomplete_reasons: Vec<String>,
+}
+
+/// Search engine evidence (`aieo search`); `bundle.schema.json#/properties/search`.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Search {
+    pub google: Option<GoogleSearch>,
+    pub bing: Option<BingSearch>,
+    pub indexnow: Option<IndexNowLog>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchMetrics {
+    pub clicks: f64,
+    pub impressions: f64,
+    pub ctr: f64,
+    pub position: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GoogleSearch {
+    pub property: String,
+    pub start: String,
+    pub end: String,
+    pub totals: SearchMetrics,
+    pub pages: Vec<SearchRow>,
+    pub queries: Vec<SearchRow>,
+    pub inspections: Vec<InspectionRecord>,
+}
+
+/// One page or query: `key` is the URL or the query text.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchRow {
+    pub key: String,
+    pub clicks: f64,
+    pub impressions: f64,
+    pub ctr: f64,
+    pub position: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InspectionRecord {
+    pub url: String,
+    pub inspected_at: String,
+    pub verdict: Option<String>,
+    pub coverage_state: Option<String>,
+    pub indexing_state: Option<String>,
+    pub robots_txt_state: Option<String>,
+    pub page_fetch_state: Option<String>,
+    pub last_crawl_time: Option<String>,
+    pub google_canonical: Option<String>,
+    pub user_canonical: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BingSearch {
+    pub site: String,
+    pub pages: Vec<BingRow>,
+    pub queries: Vec<BingRow>,
+    pub ai: Vec<BingAiDay>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BingRow {
+    pub key: String,
+    pub clicks: u64,
+    pub impressions: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BingAiDay {
+    pub day: String,
+    pub citations: u64,
+    pub cited_pages: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndexNowLog {
+    pub endpoint: String,
+    pub submissions: Vec<IndexNowSubmission>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndexNowSubmission {
+    pub at: String,
+    pub urls: u64,
+    pub status: u16,
 }
 
 /// Status classes of a group of requests.

@@ -280,7 +280,111 @@
         }
       ]
     },
-    "search": { "description": "Reserved for aieo-cli 0.4 (GSC / Bing / IndexNow aggregates).", "type": "null" },
+    "search": {
+      "description": "Search engine evidence (aieo search): Search Console totals, top pages and queries, URL Inspection results; Bing stats and AI citations; IndexNow submissions.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["google", "bing", "indexnow"],
+          "properties": {
+            "google": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "required": ["property", "start", "end", "totals", "pages", "queries", "inspections"],
+                  "properties": {
+                    "property": { "type": "string" },
+                    "start": { "$ref": "#/definitions/day" },
+                    "end": { "$ref": "#/definitions/day" },
+                    "totals": { "$ref": "#/definitions/searchMetrics" },
+                    "pages": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/definitions/searchRow" } },
+                    "queries": { "type": "array", "maxItems": 500, "items": { "$ref": "#/definitions/searchRow" } },
+                    "inspections": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["url", "inspected_at"],
+                        "properties": {
+                          "url": { "type": "string" },
+                          "inspected_at": { "$ref": "#/definitions/timestamp" },
+                          "verdict": { "type": ["string", "null"] },
+                          "coverage_state": { "type": ["string", "null"] },
+                          "indexing_state": { "type": ["string", "null"] },
+                          "robots_txt_state": { "type": ["string", "null"] },
+                          "page_fetch_state": { "type": ["string", "null"] },
+                          "last_crawl_time": { "type": ["string", "null"] },
+                          "google_canonical": { "type": ["string", "null"] },
+                          "user_canonical": { "type": ["string", "null"] }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "bing": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "required": ["site", "pages", "queries", "ai"],
+                  "properties": {
+                    "site": { "type": "string" },
+                    "pages": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/definitions/bingRow" } },
+                    "queries": { "type": "array", "maxItems": 500, "items": { "$ref": "#/definitions/bingRow" } },
+                    "ai": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["day", "citations", "cited_pages"],
+                        "properties": {
+                          "day": { "$ref": "#/definitions/day" },
+                          "citations": { "type": "integer", "minimum": 0 },
+                          "cited_pages": { "type": "integer", "minimum": 0 }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "indexnow": {
+              "oneOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "required": ["endpoint", "submissions"],
+                  "properties": {
+                    "endpoint": { "type": "string" },
+                    "submissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": ["at", "urls", "status"],
+                        "properties": {
+                          "at": { "$ref": "#/definitions/timestamp" },
+                          "urls": { "type": "integer", "minimum": 0 },
+                          "status": { "type": "integer" }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "privacy": {
       "type": "object",
       "required": ["raw_logs_included", "source_included", "ip"],
@@ -294,6 +398,40 @@
   },
   "additionalProperties": false,
   "definitions": {
+    "day": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+    "searchMetrics": {
+      "type": "object",
+      "required": ["clicks", "impressions", "ctr", "position"],
+      "properties": {
+        "clicks": { "type": "number", "minimum": 0 },
+        "impressions": { "type": "number", "minimum": 0 },
+        "ctr": { "type": "number", "minimum": 0 },
+        "position": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "searchRow": {
+      "type": "object",
+      "required": ["key", "clicks", "impressions", "ctr", "position"],
+      "properties": {
+        "key": { "type": "string" },
+        "clicks": { "type": "number", "minimum": 0 },
+        "impressions": { "type": "number", "minimum": 0 },
+        "ctr": { "type": "number", "minimum": 0 },
+        "position": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "bingRow": {
+      "type": "object",
+      "required": ["key", "clicks", "impressions"],
+      "properties": {
+        "key": { "type": "string" },
+        "clicks": { "type": "integer", "minimum": 0 },
+        "impressions": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
     "actor": { "enum": ["training", "search_index", "user_fetch", "classic_search", "agent", "other", "unknown_bot", "human"] },
     "statusBuckets": {
       "type": "object",

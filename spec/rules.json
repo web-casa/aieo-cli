@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "rules": [
     {
       "id": "F01",
@@ -2824,6 +2824,140 @@
         "rust"
       ],
       "default_enabled": true
+    },
+    {
+      "id": "S-NOT-INDEXED",
+      "family": "S",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Indexable page not in Google's index",
+        "zh": "可索引页面未被 Google 收录"
+      },
+      "description": {
+        "en": "URL Inspection reports this indexable build page as not indexed (for example \"Crawled – currently not indexed\" or \"Discovered – currently not indexed\").",
+        "zh": "URL 检查显示，构建产物中这个可索引页面未被收录（例如“已抓取 - 尚未编入索引”或“已发现 - 尚未编入索引”）。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "search"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://support.google.com/webmasters/answer/7440203"
+    },
+    {
+      "id": "S-CANONICAL-OVERRIDDEN",
+      "family": "S",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Google chose another canonical",
+        "zh": "Google 选择了另一个规范网址"
+      },
+      "description": {
+        "en": "The page declares itself canonical, but Google selected a different URL as canonical, so this page's signals go to that one.",
+        "zh": "页面声明自己是规范网址，但 Google 选了另一个 URL 作为规范网址，这个页面的信号会归到那个 URL。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "search"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "S-LIVE-DIFFERS",
+      "family": "S",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Production answers differently than the build",
+        "zh": "线上返回与构建产物不一致"
+      },
+      "description": {
+        "en": "For a page the build serves and allows, Google's last fetch was blocked by robots.txt or did not succeed (404, 5xx, access denied) — the deployment, CDN or host rules differ from what was built.",
+        "zh": "构建产物中存在且允许抓取的页面，Google 最近一次抓取却被 robots.txt 拦截或没有成功（404、5xx、拒绝访问）——部署、CDN 或托管规则与构建结果不一致。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "search"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/webmaster-tools/v1/urlInspection.index/inspect"
+    },
+    {
+      "id": "S-CLICKS-DROPPED",
+      "family": "S",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Search clicks dropped sharply",
+        "zh": "搜索点击大幅下降"
+      },
+      "description": {
+        "en": "The page's clicks from Google Search fell by half or more against the previous period of the same length.",
+        "zh": "这个页面来自 Google 搜索的点击量比上一个同长度周期下降了一半或更多。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "search"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "S-INDEXNOW-KEY-INVALID",
+      "family": "S",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "IndexNow key file not served",
+        "zh": "IndexNow 密钥文件不可用"
+      },
+      "description": {
+        "en": "The configured IndexNow key is not in the build or the live site does not serve it, so engines reject submissions (HTTP 403).",
+        "zh": "配置的 IndexNow 密钥不在构建产物中，或线上站点没有提供它，搜索引擎会拒绝提交（HTTP 403）。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "search"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://www.indexnow.org/documentation"
     }
   ]
 }

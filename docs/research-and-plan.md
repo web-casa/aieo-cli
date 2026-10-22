@@ -397,6 +397,23 @@ aieo-cli/ (cargo workspace, MIT)
 - Rust 测试共 82 个，clippy 干净；版本号升到 0.3.0。
 - **待验收**：本机没有真实访问日志，"对自有站真实日志产出可解释报告"还需要一份真实日志或 Cloudflare token。Cloudflare GraphQL 只用模拟服务器测试过，尚未连真实 API。
 
+### 0.4 已完成
+- **规格 `@aieo/rules` 2.3.0**：新增 S 系列 5 条（可索引页未被 Google 收录、Google 改选规范网址、线上与构建产物不一致、点击腰斩、IndexNow 密钥未提供）；证据包 `search` 段正式化（GSC 汇总/热门页面与查询/URL 检查结果、Bing 统计与 AI 引用、IndexNow 提交记录）。
+- **新 crate `aieo-search`**：
+  - Google：桌面应用回环授权（PKCE + state，用户自己的 OAuth 客户端，不内置客户端）、刷新令牌、服务账号 JWT（用已链接的 ring 签名，不引入有时序公告的 rsa crate）；Search Analytics 按 `startRow` 分页；URL 检查带本地配额账本（每资源每天 2,000、每分钟 600），优先检查最久没查过的 URL。
+  - Bing：API key 读取查询、页面、抓取问题统计；AI Performance 总览 CSV 按 aieo.ee 现有导入器的同一套规则解析。
+  - IndexNow：密钥生成（写进框架静态目录）、构建与线上双重校验、按基线比较页面哈希只提交新增/变更/删除的 URL，默认只出计划，`--yes` 才发送，所有请求写入 `.aieo/audit.jsonl`。
+  - 凭据放在用户配置目录（仅本人可读），CI 用环境变量（`AIEO_API_KEY`、`BING_WEBMASTER_API_KEY`、`GOOGLE_APPLICATION_CREDENTIALS`）。
+- **命令**：`aieo search google login|properties|pull|inspect`、`aieo search bing key|pull|import-ai`、`aieo search report`、`aieo indexnow keygen|verify|submit`、`aieo login`、`aieo push`；`aieo export` 自动附带 `search` 段和 S 发现。
+- **aieo.ee 侧（aieo-v5，分支 `feat/cli-bundles`）**：
+  - `POST /api/projects/:id/cli/bundles`（gzip 或 JSON，20 MB / 解压 100 MB 上限，Schema 校验，站点域名必须匹配项目，`commit + kinds` 幂等，单事务 + 项目级咨询锁，每组织每小时 60 次）；`GET …/cli/runs`、`GET …/cli/overview`。
+  - 新表 `cli_runs`、`cli_pages`、`crawler_daily`、`ai_referrals_daily`；新页面"内部视角"（拖拽上传、最近一次运行、发现列表、爬虫活动图、AI 引荐），中英文案。
+  - 42 项 API 测试、Web 测试、类型检查、生成文档检查全部通过。
+- **端到端验证**：本地起 aieo.ee API（专用 fixtest 库），`aieo login` 自动找到匹配项目，`aieo push` 上传成功，概览接口返回页面清单、爬虫与引荐汇总；只读 key 被正确拒绝。
+- 与方案的出入：上传端点用现有的 `/api/projects/...` 而不是 `/api/v1/...`（aieo.ee 目前没有版本化 API）；没有用系统钥匙串，凭据文件按 gh/gcloud 的做法存放；设备授权流程不支持 Search Console 权限，所以 CI 用服务账号。
+- Rust 测试共 102 个，clippy 干净；版本号升到 0.4.0。
+- **待验收**：Google / Bing / IndexNow 只用模拟响应测过，尚未用真实凭据跑通；aieo.ee 的"内部视角"页面只跑了组件测试，没有在浏览器里看过。
+
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。
 - 没有采用 schemaorg-validate（"schemaorg-rs"）：它把 Article 的 headline/image/datePublished/author 当作必需属性，与 Google 文档"Article 没有必需属性"相矛盾，词表也不完整。改为自维护一张按官方文档核对过的必需属性表；Microdata / RDFa 暂不检查。

@@ -20,6 +20,9 @@ aieo export                     # .aieo/bundle.json.gz (aieo-bundle/v1) for aieo
 aieo rules / aieo explain C-SITEMAP-URL-NOINDEX
 aieo logs ingest /var/log/nginx/  # crawler & AI-referral evidence from access logs
 aieo logs report                # coverage, verification, blocking, errors, AI referrals
+aieo search google inspect      # Google's view of the build's pages (URL Inspection)
+aieo indexnow submit --yes      # tell Bing & co. what changed since the baseline
+aieo login && aieo push         # upload the bundle to the aieo.ee project
 ```
 
 ## Frameworks
@@ -59,6 +62,7 @@ its snapshot (`cargo test -p aieo-cli --test presets`).
 | **C-…** | across the build | sitemap lists a page that is missing / noindex / non-canonical / on another host / blocked by robots.txt; hreflang without return link; canonical to a missing page or another host; broken internal links; orphan pages; llms.txt links to missing pages; `Disallow: /` shipped to production; AI search crawlers blocked |
 | **K-…** | configuration | framework `site` / base path / trailing-slash setting contradicted by canonical and sitemap URLs; redirect loops, chains and dead targets (with file and line); a header rule that noindexes sitemap pages; Next.js `redirects()` ignored by static export; routes answered by one client-rendered shell |
 | **L-…** | access logs (`aieo logs`) | crawler blocked by WAF/CDN, crawler 5xx, robots.txt unavailable, 404 spike after a deploy, spoofed crawlers, disallowed paths crawled, low AI-search coverage |
+| **S-…** | search engines (`aieo search`) | indexable page not indexed, canonical overridden by Google, production answers differently than the build, clicks halved, IndexNow key not served |
 | **D-…** | against a baseline | page removed without redirect, page turned noindex, canonical changed, hreflang or structured data lost, content shrank |
 
 Every rule has an id, a tier and a source: `aieo rules`, `aieo explain <id>`.
@@ -122,6 +126,64 @@ aieo logs referrals                           # landing pages of visits from Cha
 - `aieo export` adds the log aggregates (`logs` in `aieo-bundle/v1`) when
   `.aieo/logs.db` exists.
 
+## Search engines
+
+Everything runs with your own credentials, stored in your config
+directory (`~/.config/aieo/credentials.json`, owner-only) or taken from
+the environment in CI. Data lands in `.aieo/search.db`.
+
+```sh
+# Google Search Console — your own "Desktop app" OAuth client from Google Cloud
+aieo search google login --client-secret client_secret.json   # browser, loopback redirect
+aieo search google pull --days 28        # clicks per page and day, top queries
+aieo search google inspect [--limit 200] # URL Inspection of indexable pages, stalest first
+# Bing Webmaster Tools — API key from Settings → API Access
+aieo search bing key                     # or BING_WEBMASTER_API_KEY
+aieo search bing pull
+aieo search bing import-ai export.csv    # AI Performance overview export (Date, Citations, Cited Pages)
+aieo search report
+```
+
+- **CI**: set `GOOGLE_APPLICATION_CREDENTIALS` to a service account key
+  whose e-mail is a user of the Search Console property (the device flow
+  does not allow Search Console scopes).
+- **URL Inspection** keeps a local quota ledger (2,000 per property a
+  day, 600 a minute) and inspects the URLs it looked at longest ago first.
+- **Findings (S)**, read against the build: an indexable page Google has
+  not indexed, a canonical Google overrode, a page the build serves that
+  Google could not fetch / found blocked / saw noindexed (production is
+  not what was built), clicks halved against the previous period, an
+  IndexNow key the build does not serve.
+- Bing's AI Performance and Google's AI Overviews report have no API; the
+  Bing overview export is imported with the same rules as aieo.ee.
+
+### IndexNow
+
+```sh
+aieo indexnow keygen --write             # key file into public/ (static/ for Hugo, Docusaurus)
+aieo indexnow verify                     # in the build? served live?
+aieo indexnow submit                     # plan: new, changed and removed pages since the baseline
+aieo indexnow submit --yes               # send (Bing, Yandex, Seznam, Naver, … share it; not Google)
+```
+
+Changes are found by comparing page hashes with the baseline
+(`aieo snapshot`), so only what a deploy touched is sent. Nothing is
+sent without `--yes`, and every request is recorded in
+`.aieo/audit.jsonl`.
+
+## aieo.ee
+
+```sh
+aieo login                 # an organisation API key with write access; finds the project for `site`
+aieo push                  # export the bundle (check + logs + search) and upload it
+```
+
+`aieo push` uploads to `[aieo] project` in `aieo.toml` (or `--to <id>`).
+The same commit and kinds uploaded twice are recognised as one run. The
+bundle carries findings, page inventory and aggregates — no page source,
+raw logs or IP addresses — and can also be dropped on the project's
+"Inside view" page.
+
 ## Configuration (`aieo.toml`)
 
 ```toml
@@ -143,13 +205,23 @@ url = "/legacy/**"
 reason = "old docs, removed in Q1"
 owner = "docs-team"
 expires = "2026-12-31"
+
+[aieo]
+project = "…"                    # aieo.ee project id for `aieo push`
+
+[search]
+google_property = "sc-domain:example.com"   # default: the property covering `site`
+bing_site = "https://example.com/"
+
+[indexnow]
+key = "…"                        # public; served as /<key>.txt
 ```
 
 ## CI
 
 ```yaml
 - run: npm run build
-- uses: web-casa/aieo-cli@v0.3     # composite action, see action.yml
+- uses: web-casa/aieo-cli@v0.4     # composite action, see action.yml
   with:
     command: diff                  # or check
     upload-sarif: "true"           # GitHub code scanning (security-events: write)
@@ -183,7 +255,8 @@ Crates: `aieo-core` (spec, findings, config, bundle) · `aieo-site` (build
 directory as production serves it: routes, host rules, robots, sitemaps,
 HTML, framework presets) · `aieo-rules` (F / P / T / C / K / D) ·
 `aieo-report` (formats) · `aieo-logs` (parsers, classification, IP
-verification, SQLite store, Cloudflare GraphQL) · `aieo-cli` (the `aieo`
-binary).
+verification, SQLite store, Cloudflare GraphQL) · `aieo-search` (Search
+Console, Bing Webmaster, IndexNow, credentials, aieo.ee upload) ·
+`aieo-cli` (the `aieo` binary).
 
 MIT licensed.

@@ -20,7 +20,9 @@ use aieo_rules::{check, Options};
 use aieo_site::preset::{detect, infer_origin, PresetKind, Rendering};
 use aieo_site::Site;
 
+mod cloud;
 mod logs;
+mod search;
 
 /// Exit codes: 0 gate passed · 1 gate failed · 2 incomplete evidence or usage error.
 const EXIT_GATE: u8 = 1;
@@ -92,6 +94,16 @@ enum Command {
     /// Crawler and AI-referral evidence from access logs
     #[command(subcommand)]
     Logs(logs::LogsCommand),
+    /// Store an aieo.ee API key (for `aieo push`)
+    Login(cloud::LoginArgs),
+    /// Export the evidence bundle and upload it to the aieo.ee project
+    Push(cloud::PushArgs),
+    /// Tell Bing, Yandex and other IndexNow engines which URLs changed
+    #[command(subcommand)]
+    Indexnow(cloud::IndexNowCommand),
+    /// Search Console and Bing Webmaster evidence, read against the build
+    #[command(subcommand)]
+    Search(search::SearchCommand),
 }
 
 #[derive(Args, Clone)]
@@ -523,6 +535,9 @@ fn cmd_export(target: Target, output: PathBuf, baseline: Option<PathBuf>) -> Res
     if let Some((log_data, findings)) = logs::for_export(&target)? {
         aieo_report::attach_logs(&mut bundle, log_data, findings, &[]);
     }
+    if let Some((search_data, findings)) = search::for_export(&target)? {
+        aieo_report::attach_search(&mut bundle, search_data, findings, &[]);
+    }
     let path = if output.is_relative() {
         target.project.join(&output)
     } else {
@@ -530,7 +545,7 @@ fn cmd_export(target: Target, output: PathBuf, baseline: Option<PathBuf>) -> Res
     };
     write_file(&path, &bundle.to_gzip())?;
     eprintln!(
-        "bundle written to {} — upload it at aieo.ee or with `aieo push` (0.4)",
+        "bundle written to {} — `aieo push` uploads it (or drop it on the project's Inside view page)",
         path.display()
     );
     Ok(if bundle.summary.incomplete {
@@ -713,6 +728,10 @@ fn main() -> ExitCode {
             logs::LogsCommand::Referrals { window } => logs::cmd_referrals(window),
             logs::LogsCommand::Pull(source) => logs::cmd_pull(source),
         },
+        Command::Login(args) => cloud::cmd_login(args),
+        Command::Push(args) => cloud::cmd_push(args),
+        Command::Indexnow(cmd) => cloud::cmd_indexnow(cmd),
+        Command::Search(cmd) => search::cmd_search(cmd),
     };
     match result {
         Ok(code) => ExitCode::from(code),

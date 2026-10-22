@@ -19,6 +19,16 @@
 //! reason = "old docs, removed in Q1"
 //! owner = "docs-team"
 //! expires = "2026-12-31"
+//!
+//! [aieo]
+//! project = "…"                  # aieo.ee project id for `aieo push`
+//!
+//! [search]
+//! google_property = "sc-domain:example.com"   # or "https://example.com/"
+//! bing_site = "https://example.com/"
+//!
+//! [indexnow]
+//! key = "…"                      # public; its key file is served at /<key>.txt
 //! ```
 
 use std::collections::{BTreeMap, HashMap};
@@ -47,6 +57,42 @@ pub struct Config {
     pub rules: BTreeMap<String, String>,
     #[serde(default)]
     pub suppress: Vec<SuppressRule>,
+    #[serde(default)]
+    pub aieo: AieoConfig,
+    #[serde(default)]
+    pub search: SearchConfig,
+    #[serde(default)]
+    pub indexnow: IndexNowConfig,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AieoConfig {
+    /// aieo.ee project id the bundles are pushed to
+    pub project: Option<String>,
+    /// aieo.ee base URL (default https://aieo.ee)
+    pub endpoint: Option<String>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SearchConfig {
+    /// Search Console property: `sc-domain:example.com` or a URL prefix
+    pub google_property: Option<String>,
+    /// Bing Webmaster Tools site URL
+    pub bing_site: Option<String>,
+    /// account label in the credentials file (default "default")
+    pub google_account: Option<String>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct IndexNowConfig {
+    pub key: Option<String>,
+    /// where the key file is served when not at `/<key>.txt`
+    pub key_location: Option<String>,
+    /// default https://api.indexnow.org/indexnow
+    pub endpoint: Option<String>,
 }
 
 #[derive(Debug, Default, Deserialize)]

@@ -1,0 +1,25 @@
+[package]
+name = "aieo-search"
+description = "Search engine evidence: Google Search Console, Bing Webmaster Tools, IndexNow; credentials, quota ledger, audit log"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+aieo-core.workspace = true
+aieo-rules.workspace = true
+anyhow.workspace = true
+base64.workspace = true
+getrandom.workspace = true
+ring.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+time.workspace = true
+ureq.workspace = true
+url.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

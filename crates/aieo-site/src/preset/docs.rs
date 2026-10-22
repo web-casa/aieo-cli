@@ -81,6 +81,7 @@ pub(super) fn vitepress_configure(p: &mut Project) {
         .and_then(|c| c.get("srcDir"))
         .map(String::from);
     let src = join(&vp, src.as_deref().unwrap_or("."));
+    p.sources_root = Some(src.clone());
     for (file, mut segments) in walk_sources(&p.root, &src, &["md"]) {
         if segments
             .first()
@@ -220,6 +221,7 @@ mod tests {
             Some(("docs/.vitepress/config.mts".into(), 2))
         );
         assert_eq!(p.source_for("/").as_deref(), Some("docs/index.md"));
+        assert_eq!(p.public_dir().as_deref(), Some("docs/public"));
         assert_eq!(
             p.source_for("/guide/getting-started.html").as_deref(),
             Some("docs/guide/getting-started.md")

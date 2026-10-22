@@ -152,11 +152,31 @@ pub fn attach_logs(
     findings: Vec<aieo_core::Finding>,
     fail_on: &[GateCondition],
 ) {
-    if !bundle.run.kinds.iter().any(|k| k == "logs") {
-        bundle.run.kinds.push("logs".into());
-    }
     bundle.logs = Some(logs);
     bundle.privacy.ip = "salted-hash".into();
+    attach(bundle, "logs", findings, fail_on);
+}
+
+/// Add search-engine evidence and its S findings to a bundle.
+pub fn attach_search(
+    bundle: &mut Bundle,
+    search: aieo_core::bundle::Search,
+    findings: Vec<aieo_core::Finding>,
+    fail_on: &[GateCondition],
+) {
+    bundle.search = Some(search);
+    attach(bundle, "search", findings, fail_on);
+}
+
+fn attach(
+    bundle: &mut Bundle,
+    kind: &str,
+    findings: Vec<aieo_core::Finding>,
+    fail_on: &[GateCondition],
+) {
+    if !bundle.run.kinds.iter().any(|k| k == kind) {
+        bundle.run.kinds.push(kind.into());
+    }
     bundle.findings.extend(findings);
     bundle.findings.sort_by(|a, b| {
         b.tier

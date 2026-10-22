@@ -133,6 +133,8 @@ pub struct Project {
     pub ignored: Vec<IgnoredSetting>,
     pub notes: Vec<String>,
     sources: SourceIndex,
+    /// VitePress: the source directory (relative to the root)
+    sources_root: Option<String>,
 }
 
 /// What a preset adds to a build directory to serve it like production.
@@ -233,6 +235,7 @@ pub fn detect(root: &Path, forced: Option<PresetKind>) -> Project {
         ignored: Vec::new(),
         notes: Vec::new(),
         sources: SourceIndex::default(),
+        sources_root: None,
     };
     match kind {
         PresetKind::Static => {}
@@ -284,6 +287,26 @@ impl Project {
     pub(crate) fn set_trailing_slash(&mut self, policy: TrailingSlash, key: &str) {
         self.trailing_slash = Some(policy);
         self.trailing_slash_key = Some(key.to_string());
+    }
+
+    /// Directory (relative to the root) whose files the framework copies
+    /// to the build unchanged — where a file like an IndexNow key goes.
+    /// None for a plain build directory (no source to put it in).
+    pub fn public_dir(&self) -> Option<String> {
+        Some(match self.kind {
+            PresetKind::Static => return None,
+            PresetKind::Hugo | PresetKind::Docusaurus => "static".into(),
+            PresetKind::Vitepress => {
+                // `<vitepress root>/<srcDir>/public`
+                let src = self.sources_root.clone().unwrap_or_default();
+                if src.is_empty() {
+                    "public".into()
+                } else {
+                    format!("{src}/public")
+                }
+            }
+            _ => "public".into(),
+        })
     }
 
     /// Where a config key was written: `astro.config.mjs:4`.

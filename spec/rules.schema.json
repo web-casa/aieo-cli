@@ -22,8 +22,8 @@
       "type": "object",
       "required": ["id", "family", "scope", "class", "weight", "title", "description", "tier", "modes", "evidence_level", "implementations", "default_enabled"],
       "properties": {
-        "id": { "type": "string", "pattern": "^([FGHP]\\d{2}|[TCDKL]-[A-Z0-9-]+)$" },
-        "family": { "enum": ["F", "G", "H", "P", "T", "C", "D", "K", "L"] },
+        "id": { "type": "string", "pattern": "^([FGHP]\\d{2}|[TCDKLS]-[A-Z0-9-]+)$" },
+        "family": { "enum": ["F", "G", "H", "P", "T", "C", "D", "K", "L", "S"] },
         "scope": { "enum": ["site", "page"] },
         "class": { "enum": ["scoring", "bonus", "info", "finding"] },
         "weight": { "type": "number", "minimum": 0 },
