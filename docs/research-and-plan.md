@@ -436,6 +436,13 @@ aieo-cli/ (cargo workspace, MIT)
 - 用 `claude -p --plugin-dir` 在临时站点上跑真实会话（提示词不提 aieo，用户的其他 SEO 技能同时在场，对外操作由包装脚本拦截），5 个场景（修复、CI、爬虫日志、收录与 IndexNow、llms.txt）结果均正确，未出现越权操作。
 - 修复两处：中文提问时技能未触发（描述加中文触发词）；Agent 误以为 `aieo logs ingest` 需用户执行（报错与 MCP 说明写明它只读本地文件、不外发）。
 
+### 1.2 已完成
+- CI 新增 `action-release`：在 Linux、macOS、Windows 上用最新 release 的二进制跑 Action，并确认门禁在 error 时失败；`install.sh` 支持 Windows（Git Bash）。
+- 所有 MCP 工具的 `project` 参数都有测试；仓库同时是 Cursor 插件（`.cursor-plugin/`），新增 `glama.json`。
+- aieo.ee 规则页面：`packages/rules/docs/{en,zh}/<ID>.md` 手写内容，`gen-cli-rules` 生成每条规则一页；首批 C、K 两类 31 条（中英 62 页）。没有内容的规则只进总表，不生成薄页面。
+- 写规则文档时发现并修复 7 处检测问题：Hugo 配置键大小写导致缺行号；Next.js `metadataBase` 指向布局文件；`_redirects` 文件遮蔽（循环、链、目标缺失）；`! X-Robots-Tag`；`C-ROBOTS-BLOCKS-ALL` 按全站判断；`C-ROBOTS-AI-SEARCH-BLOCKED` 也报"只留首页"；hreflang 按 ISO 代码表校验。
+- `@aieo/rules` 3.0.0（判断放宽属于 major）：`rules-history.json` 新增 `changed`；`aieo diff` 把基线之后新增或放宽的规则的发现记为 `unknown`，升级仍不会让 `diff` 失败。
+
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。
 - 没有采用 schemaorg-validate（"schemaorg-rs"）：它把 Article 的 headline/image/datePublished/author 当作必需属性，与 Google 文档"Article 没有必需属性"相矛盾，词表也不完整。改为自维护一张按官方文档核对过的必需属性表；Microdata / RDFa 暂不检查。

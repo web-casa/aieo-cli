@@ -2,7 +2,7 @@
 # after the build and has the build directory (artifacts or the same job):
 #
 #   include:
-#     - remote: https://raw.githubusercontent.com/web-casa/aieo-cli/v1.1.1/ci/gitlab-ci.yml
+#     - remote: https://raw.githubusercontent.com/web-casa/aieo-cli/v1.2.0/ci/gitlab-ci.yml
 #
 #   aieo:
 #     extends: .aieo
@@ -17,7 +17,7 @@
 .aieo:
   image: debian:stable-slim
   variables:
-    AIEO_VERSION: "1.1.1"
+    AIEO_VERSION: "1.2.0"
     AIEO_COMMAND: check
     AIEO_ARGS: ""
     AIEO_PUSH: "false"
