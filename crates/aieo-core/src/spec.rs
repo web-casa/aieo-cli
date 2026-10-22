@@ -232,7 +232,10 @@ mod tests {
         assert!(s.ai_platforms.iter().any(|p| p.id == "chatgpt"));
         assert!(s.rule_existed_in("C-LINK-BROKEN", "2.0.0"));
         assert!(!s.rule_existed_in("S-NOT-INDEXED", "2.2.0"));
-        assert!(s.rule_existed_in("S-NOT-INDEXED", "2.10.0"), "numeric, not lexical");
+        assert!(
+            s.rule_existed_in("S-NOT-INDEXED", "2.10.0"),
+            "numeric, not lexical"
+        );
         assert_eq!(s.history.len(), s.rules.len());
     }
 }

@@ -291,7 +291,11 @@ pub(crate) struct Built {
     store: Store,
 }
 
-pub(crate) fn build_report(window: &Window, kinds: &str, fail_on: Vec<GateCondition>) -> Result<Built> {
+pub(crate) fn build_report(
+    window: &Window,
+    kinds: &str,
+    fail_on: Vec<GateCondition>,
+) -> Result<Built> {
     let started = Instant::now();
     let target = &window.target;
     let path = db_path(&target.project);

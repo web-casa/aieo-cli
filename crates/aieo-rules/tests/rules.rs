@@ -421,14 +421,23 @@ fn an_upgrade_alone_never_fails_a_diff() {
         .iter()
         .filter(|f| !spec().rule_existed_in(&f.rule, "2.0.0"))
         .collect();
-    assert!(!later.is_empty(), "the planted site trips rules added after 2.0.0");
+    assert!(
+        !later.is_empty(),
+        "the planted site trips rules added after 2.0.0"
+    );
     for f in &later {
         assert_eq!(f.status, FindingStatus::Unknown, "{}", f.rule);
-        assert!(f.evidence.iter().any(|e| e.detail.contains("added after the baseline")));
+        assert!(f
+            .evidence
+            .iter()
+            .any(|e| e.detail.contains("added after the baseline")));
     }
     let only_later: Vec<_> = later.into_iter().cloned().collect();
     let gate = aieo_core::config::parse_fail_on(&["new:notice".into()]).unwrap();
-    assert!(gate_passes(&only_later, &gate), "rules from an upgrade do not count as new");
+    assert!(
+        gate_passes(&only_later, &gate),
+        "rules from an upgrade do not count as new"
+    );
     assert!(o
         .findings
         .iter()

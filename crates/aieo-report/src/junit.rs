@@ -41,7 +41,10 @@ pub fn render(bundle: &Bundle, paths: &Paths) -> String {
         f = cases.len()
     );
     if cases.is_empty() {
-        let _ = writeln!(out, "    <testcase classname=\"aieo\" name=\"no errors or warnings\"/>");
+        let _ = writeln!(
+            out,
+            "    <testcase classname=\"aieo\" name=\"no errors or warnings\"/>"
+        );
     }
     for f in cases {
         let at = paths
@@ -66,7 +69,11 @@ pub fn render(bundle: &Bundle, paths: &Paths) -> String {
             "    <testcase classname=\"{}\" name=\"{}\"{}>",
             esc(&f.rule),
             esc(&name),
-            if at.is_empty() { String::new() } else { format!(" file=\"{}\"", esc(at.split(':').next().unwrap_or(""))) }
+            if at.is_empty() {
+                String::new()
+            } else {
+                format!(" file=\"{}\"", esc(at.split(':').next().unwrap_or("")))
+            }
         );
         let _ = writeln!(
             out,

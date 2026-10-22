@@ -92,7 +92,11 @@ fn tier_of(s: &str) -> Option<Tier> {
 pub fn finding_json(f: &Finding, dist: &str) -> Value {
     let file = f.file.as_ref().map(|file| {
         let d = dist.trim_end_matches('/');
-        let p = if d.is_empty() || d == "." { file.clone() } else { format!("{d}/{file}") };
+        let p = if d.is_empty() || d == "." {
+            file.clone()
+        } else {
+            format!("{d}/{file}")
+        };
         match f.line {
             Some(l) => format!("{p}:{l}"),
             None => p,
@@ -124,7 +128,11 @@ fn filtered(findings: &[Finding], p: &CheckParams) -> (Vec<Finding>, usize) {
     let all: Vec<Finding> = findings
         .iter()
         .filter(|f| min.is_none_or(|t| f.tier >= t))
-        .filter(|f| p.rule.as_deref().is_none_or(|r| f.rule.eq_ignore_ascii_case(r)))
+        .filter(|f| {
+            p.rule
+                .as_deref()
+                .is_none_or(|r| f.rule.eq_ignore_ascii_case(r))
+        })
         .filter(|f| {
             p.url_contains
                 .as_deref()
@@ -200,7 +208,13 @@ impl Aieo {
         blocking(move || {
             let run = run_check(&target, None, Vec::new(), "check")?;
             let (shown, total) = filtered(&run.bundle.findings, &p);
-            Ok(pretty(summary(&run.bundle, &shown, total, &run.prepared.dist_rel, &run.prepared.notes)))
+            Ok(pretty(summary(
+                &run.bundle,
+                &shown,
+                total,
+                &run.prepared.dist_rel,
+                &run.prepared.notes,
+            )))
         })
         .await
     }
@@ -214,7 +228,9 @@ impl Aieo {
             let (config, _) = Config::load_or_default(&root)?;
             let baseline = load_baseline(None, config.check.baseline.as_deref(), &root, false)?
                 .or_else(|| Bundle::read(&root.join(".aieo/baseline.json")).ok())
-                .ok_or_else(|| anyhow::anyhow!("no baseline: run `aieo snapshot` on a known-good build first"))?;
+                .ok_or_else(|| {
+                    anyhow::anyhow!("no baseline: run `aieo snapshot` on a known-good build first")
+                })?;
             let run = run_check(&target, Some(&baseline), Vec::new(), "diff")?;
             let new: Vec<Finding> = run
                 .bundle
@@ -224,7 +240,13 @@ impl Aieo {
                 .cloned()
                 .collect();
             let (shown, total) = filtered(&new, &p);
-            let mut v = summary(&run.bundle, &shown, total, &run.prepared.dist_rel, &run.prepared.notes);
+            let mut v = summary(
+                &run.bundle,
+                &shown,
+                total,
+                &run.prepared.dist_rel,
+                &run.prepared.notes,
+            );
             v["fixed"] = json!(run.bundle.diff.as_ref().map(|d| d
                 .fixed
                 .iter()
@@ -243,7 +265,11 @@ impl Aieo {
         blocking(move || {
             let run = run_check(&target, None, Vec::new(), "check")?;
             let origin = run.bundle.site.origin.clone();
-            let want = if p.url.starts_with('/') { format!("{origin}{}", p.url) } else { p.url.clone() };
+            let want = if p.url.starts_with('/') {
+                format!("{origin}{}", p.url)
+            } else {
+                p.url.clone()
+            };
             let same = |u: &str| u.trim_end_matches('/') == want.trim_end_matches('/');
             let record = run.bundle.inventory.pages.iter().find(|r| same(&r.url));
             let findings: Vec<Value> = run
@@ -289,7 +315,11 @@ impl Aieo {
             .rules
             .iter()
             .filter(|r| r.implemented_here())
-            .filter(|r| p.family.as_deref().is_none_or(|f| r.family.eq_ignore_ascii_case(f)))
+            .filter(|r| {
+                p.family
+                    .as_deref()
+                    .is_none_or(|f| r.family.eq_ignore_ascii_case(f))
+            })
             .map(|r| {
                 json!({
                     "id": r.id,
@@ -298,7 +328,9 @@ impl Aieo {
                 })
             })
             .collect();
-        Ok(pretty(json!({ "rules_version": spec().rules_version, "rules": rules })))
+        Ok(pretty(
+            json!({ "rules_version": spec().rules_version, "rules": rules }),
+        ))
     }
 
     /// Crawler and AI-referral evidence from the ingested access logs (`aieo logs ingest`):
@@ -340,12 +372,12 @@ impl Aieo {
         let actor = p.actor.unwrap_or_else(|| "search_index".into());
         blocking(move || {
             let built = crate::logs::build_report(&window, "logs", Vec::new())?;
-            let paths = built
-                .report
-                .never_crawled
-                .get(&actor)
-                .ok_or_else(|| anyhow::anyhow!("no coverage for {actor} (needs a build next to the logs)"))?;
-            Ok(pretty(json!({ "actor": actor, "days": built.report.days, "never_crawled": paths })))
+            let paths = built.report.never_crawled.get(&actor).ok_or_else(|| {
+                anyhow::anyhow!("no coverage for {actor} (needs a build next to the logs)")
+            })?;
+            Ok(pretty(
+                json!({ "actor": actor, "days": built.report.days, "never_crawled": paths }),
+            ))
         })
         .await
     }
@@ -353,7 +385,10 @@ impl Aieo {
     /// Search Console / Bing evidence pulled with `aieo search …`, read against the build:
     /// totals, top pages, URL Inspection results, S findings.
     #[tool(annotations(title = "Search report", read_only_hint = true))]
-    async fn search_report(&self, Parameters(p): Parameters<SearchParams>) -> Result<String, String> {
+    async fn search_report(
+        &self,
+        Parameters(p): Parameters<SearchParams>,
+    ) -> Result<String, String> {
         let target = self.target(None, None);
         let days = p.days.unwrap_or(28);
         blocking(move || {
@@ -436,7 +471,9 @@ impl ServerHandler for Aieo {
 }
 
 pub fn serve(root: PathBuf) -> Result<u8> {
-    let rt = tokio::runtime::Builder::new_current_thread().enable_all().build()?;
+    let rt = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()?;
     rt.block_on(async move {
         let service = Aieo::new(root).serve(rmcp::transport::stdio()).await?;
         service.waiting().await?;

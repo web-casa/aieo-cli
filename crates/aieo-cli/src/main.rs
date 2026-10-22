@@ -285,7 +285,14 @@ fn hosting_rules(root: &Path, config: &Config, host: &mut aieo_site::hosting::Ho
         .hosting
         .redirects
         .iter()
-        .map(|r| (r.from.clone(), r.to.clone(), r.status.unwrap_or(308), at(&r.from)))
+        .map(|r| {
+            (
+                r.from.clone(),
+                r.to.clone(),
+                r.status.unwrap_or(308),
+                at(&r.from),
+            )
+        })
         .collect();
     let rewrites = config
         .hosting
@@ -431,7 +438,9 @@ fn render(run: &Run, format: &str, lang: Lang, args: &CheckArgs, color: bool) ->
         "markdown" => markdown::render(&run.bundle, lang, args.max_per_rule).into_bytes(),
         "junit" => junit::render(&run.bundle, &paths).into_bytes(),
         "bundle" => run.bundle.to_gzip(),
-        other => bail!("unknown report format {other:?} (json, sarif, github, markdown, junit, bundle)"),
+        other => {
+            bail!("unknown report format {other:?} (json, sarif, github, markdown, junit, bundle)")
+        }
     })
 }
 

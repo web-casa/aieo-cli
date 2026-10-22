@@ -47,18 +47,26 @@ fn serves_read_only_tools_over_stdio() {
     };
     let init = call(json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"t","version":"0"}}})).unwrap();
     assert_eq!(init["result"]["serverInfo"]["name"], "aieo");
-    assert!(init["result"]["instructions"].as_str().unwrap().contains("plans"));
+    assert!(init["result"]["instructions"]
+        .as_str()
+        .unwrap()
+        .contains("plans"));
     call(json!({"jsonrpc":"2.0","method":"notifications/initialized"}));
 
     let list = call(json!({"jsonrpc":"2.0","id":2,"method":"tools/list"})).unwrap();
     let tools = list["result"]["tools"].as_array().unwrap();
     assert!(tools.len() >= 10);
     for t in tools {
-        assert_eq!(t["annotations"]["readOnlyHint"], true, "{} must be read-only", t["name"]);
+        assert_eq!(
+            t["annotations"]["readOnlyHint"], true,
+            "{} must be read-only",
+            t["name"]
+        );
     }
 
     let check = call(json!({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"check","arguments":{"rule":"C-LINK-BROKEN"}}})).unwrap();
-    let body: Value = serde_json::from_str(check["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
+    let body: Value =
+        serde_json::from_str(check["result"]["content"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(body["findings_matching"], 1);
     let f = &body["findings"][0];
     assert_eq!(f["rule"], "C-LINK-BROKEN");
@@ -67,7 +75,10 @@ fn serves_read_only_tools_over_stdio() {
 
     let logs = call(json!({"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"logs_report","arguments":{}}})).unwrap();
     assert_eq!(logs["result"]["isError"], true);
-    assert!(logs["result"]["content"][0]["text"].as_str().unwrap().contains("aieo logs ingest"));
+    assert!(logs["result"]["content"][0]["text"]
+        .as_str()
+        .unwrap()
+        .contains("aieo logs ingest"));
 
     drop(stdin);
     let status = child.wait().unwrap();
