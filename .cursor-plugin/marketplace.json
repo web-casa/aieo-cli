@@ -1,0 +1,15 @@
+{
+  "name": "aieo",
+  "description": "SEO and AI-search checks for a site's build output",
+  "owner": {
+    "name": "Web-Casa",
+    "url": "https://aieo.ee"
+  },
+  "plugins": [
+    {
+      "name": "aieo",
+      "description": "Check a site's build for SEO and AI-search defects and fix them in the source files; read crawler logs and Search Console data against the build. Read-only MCP tools and skills for the aieo CLI.",
+      "source": "./plugins/aieo"
+    }
+  ]
+}

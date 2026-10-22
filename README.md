@@ -277,6 +277,9 @@ The `aieo` binary must be on `PATH` (see Install). Then:
 | Claude Desktop and other MCPB hosts | open `aieo-v<version>.mcpb` from the [release](https://github.com/web-casa/aieo-cli/releases) and choose the site's directory |
 | Any MCP client | `{"command": "aieo", "args": ["mcp"]}`, started in the project directory |
 
+The same directory is a Cursor plugin (`.cursor-plugin/`), for the Cursor
+Marketplace; until it is listed there, use the skills and MCP rows above.
+
 The plugin brings five skills — `aieo` (check → edit the source file →
 rebuild → check), `aieo-ci`, `aieo-crawlers`, `aieo-indexing`,
 `aieo-llms-txt` ([plugins/aieo/skills](plugins/aieo/skills)) — and the MCP

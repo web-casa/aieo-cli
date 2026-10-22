@@ -50,6 +50,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest]
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - name: Fixture build with a noindex page in the sitemap

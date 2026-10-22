@@ -19,6 +19,7 @@ fn plugin_manifests_carry_the_release_version() {
     for rel in [
         "plugins/aieo/.claude-plugin/plugin.json",
         "plugins/aieo/.codex-plugin/plugin.json",
+        "plugins/aieo/.cursor-plugin/plugin.json",
     ] {
         assert_eq!(
             json(rel)["version"],
@@ -31,6 +32,7 @@ fn plugin_manifests_carry_the_release_version() {
     for rel in [
         ".claude-plugin/marketplace.json",
         ".agents/plugins/marketplace.json",
+        ".cursor-plugin/marketplace.json",
     ] {
         assert_eq!(json(rel)["plugins"][0]["name"], "aieo", "{rel}");
     }
