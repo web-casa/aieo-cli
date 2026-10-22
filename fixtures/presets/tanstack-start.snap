@@ -1,0 +1,14 @@
+preset: tanstack
+exit: 0
+note: TanStack Start server build: 0 route(s) and 1 dynamic route(s) render only on request; links to them count as working, their HTML is not checked
+pages:
+  /about/ about/index.html <- src/routes/about.tsx [sitemap]
+  /blog/hello-world/ blog/hello-world/index.html <- src/routes/blog.$slug.tsx [sitemap]
+  /guide/getting-started/ guide/getting-started/index.html <- src/routes/guide.getting-started.tsx [sitemap]
+  / index.html <- src/routes/index.tsx [sitemap]
+multipage: 81.3 over 4 page(s): P01=pass P02=pass P03=not_applicable P04=fail
+findings:
+  notice F09 / @ index.html
+  notice F10 / @ index.html
+  notice F14 / @ index.html
+  notice P04 / @ -

@@ -141,6 +141,40 @@ pub fn render(
                 s.dim(&fix)
             );
         }
+        if let Some(mp) = r
+            .multipage
+            .as_ref()
+            .filter(|mp| mp.modules.iter().any(|m| m.status != "not_applicable"))
+        {
+            let _ = writeln!(
+                out,
+                "\n{}  {}",
+                s.bold(&if s.zh() {
+                    format!("多页一致性（{} 页）", mp.pages)
+                } else {
+                    format!("Multi-page consistency ({} pages)", mp.pages)
+                }),
+                s.bold(&format!("{:.1}", mp.score))
+            );
+            for m in mp
+                .modules
+                .iter()
+                .filter(|m| m.status == "fail" || m.status == "partial")
+            {
+                let status = if m.status == "fail" {
+                    Status::Fail
+                } else {
+                    Status::Partial
+                };
+                let _ = writeln!(
+                    out,
+                    "  {} {} {}",
+                    status_mark(status),
+                    m.id,
+                    spec().expect_rule(&m.id).title.get(s.lang)
+                );
+            }
+        }
     }
 
     let new_note = match &sum.new {

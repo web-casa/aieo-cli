@@ -74,6 +74,29 @@
                 "incomplete": { "type": "boolean" }
               },
               "additionalProperties": false
+            },
+            "multipage": {
+              "description": "P01–P04 over every content page of the build; a 0..100 layer of its own",
+              "type": "object",
+              "required": ["modules", "score", "pages"],
+              "properties": {
+                "modules": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "status", "ratio"],
+                    "properties": {
+                      "id": { "type": "string", "pattern": "^P\\d{2}$" },
+                      "status": { "enum": ["pass", "partial", "fail", "not_applicable"] },
+                      "ratio": { "type": "number", "minimum": 0, "maximum": 1 }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "score": { "type": "number", "minimum": 0, "maximum": 100 },
+                "pages": { "type": "integer", "minimum": 0 }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false

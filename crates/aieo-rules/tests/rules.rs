@@ -118,6 +118,7 @@ fn finds_the_planted_defects() {
         &Options {
             settings: &s,
             project: None,
+            rendering: None,
             baseline: None,
         },
     );
@@ -248,6 +249,7 @@ fn reports_regressions_and_new_findings_against_a_baseline() {
         &Options {
             settings: &s,
             project: None,
+            rendering: None,
             baseline: None,
         },
     );
@@ -278,6 +280,7 @@ fn reports_regressions_and_new_findings_against_a_baseline() {
         &Options {
             settings: &s,
             project: None,
+            rendering: None,
             baseline: Some(&baseline),
         },
     );
@@ -365,6 +368,7 @@ fn settings_override_tiers_switch_rules_and_suppress() {
         &Options {
             settings: &s,
             project: None,
+            rendering: None,
             baseline: None,
         },
     );

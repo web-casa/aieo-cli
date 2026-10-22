@@ -4,9 +4,14 @@
 //! map them (and as aieo.ee's conformance runner serves fixtures):
 //! `index.html` → `/`; `a/index.html` → `/a/` and `/a`; `a.html` → `/a`
 //! (winning over `a/index.html`); anything else → its own path. `_headers`
-//! and `_redirects` in the build root apply on top.
+//! and `_redirects` in the build root apply on top, as do rules a preset
+//! reads from the deployment config (`vercel.json`, Next.js manifests).
+//!
+//! A server-rendered framework build (Next.js, Nuxt) answers more paths
+//! than it has files for: those routes are known by pattern only and
+//! resolve as [`Resolution::Server`] — present, but not checkable offline.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeMap, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
@@ -15,7 +20,7 @@ use percent_encoding::percent_decode_str;
 use regex::Regex;
 use url::Url;
 
-use crate::hosting::{HeaderRules, RedirectRules};
+use crate::hosting::{HeaderRules, HostConfig, RedirectRules, RuleSource};
 
 /// Files a static host reads as configuration, never serves.
 const HOST_FILES: [&str; 3] = ["_headers", "_redirects", "_routes.json"];
@@ -26,6 +31,21 @@ pub struct SiteOptions {
     pub header_overrides: HashMap<String, Vec<(String, String)>>,
     /// Astro `base`: URL prefix the build is served under ("" for none)
     pub base_path: String,
+    /// published path → file, when the build is not one directory served
+    /// as is (Next.js server builds); None walks the build directory
+    pub layout: Option<Vec<(String, PathBuf)>>,
+    /// rules from the deployment config, applied after `_redirects` / `_headers`
+    pub host: HostConfig,
+    /// routes a server renders on request (path pattern, how it is known)
+    pub server_routes: Vec<ServerRoute>,
+}
+
+/// A route answered by a server at request time.
+#[derive(Debug, Clone)]
+pub struct ServerRoute {
+    pub pattern: Regex,
+    /// the route as the framework names it (`/blog/[slug]`)
+    pub route: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -38,6 +58,8 @@ pub enum Resolution {
         status: u16,
         via: String,
     },
+    /// a server renders the path on request (route as the framework names it)
+    Server(String),
     /// nothing answers: the host returns 404
     Missing,
     /// the URL is on another host
@@ -49,6 +71,8 @@ pub enum Resolution {
 pub struct Followed {
     /// the file finally served, if any
     pub file: Option<String>,
+    /// a server-rendered route answers instead of a file
+    pub server: Option<String>,
     pub hops: Vec<String>,
     /// left the site (final hop on another host)
     pub foreign: bool,
@@ -59,11 +83,15 @@ pub struct Site {
     pub root: PathBuf,
     pub origin: Url,
     pub base_path: String,
-    files: BTreeSet<String>,
+    /// published path → file on disk
+    files: BTreeMap<String, PathBuf>,
     routes: HashMap<String, String>,
     header_rules: HeaderRules,
     header_overrides: HashMap<String, Vec<(String, String)>>,
     pub redirects: RedirectRules,
+    server_routes: Vec<ServerRoute>,
+    /// host rules skipped because they depend on request conditions
+    pub skipped_rules: usize,
     /// meta-refresh redirect pages (Astro `redirects`, many SSGs): file → target
     stubs: HashMap<String, String>,
 }
@@ -101,33 +129,20 @@ impl Site {
         if !root.is_dir() {
             bail!("build directory {} does not exist", root.display());
         }
-        let mut files = BTreeSet::new();
-        for entry in walkdir::WalkDir::new(root)
-            .follow_links(false)
-            .sort_by_file_name()
-        {
-            let entry = entry.with_context(|| format!("reading {}", root.display()))?;
-            if !entry.file_type().is_file() {
-                continue;
-            }
-            let rel = entry
-                .path()
-                .strip_prefix(root)
-                .expect("walkdir stays under root");
-            let rel = rel
-                .components()
-                .map(|c| c.as_os_str().to_string_lossy())
-                .collect::<Vec<_>>()
-                .join("/");
-            if rel.ends_with(".DS_Store") {
-                continue;
-            }
-            files.insert(rel);
-        }
+        let files: BTreeMap<String, PathBuf> = match options.layout {
+            Some(layout) => layout.into_iter().collect(),
+            None => walk_files(root)?
+                .into_iter()
+                .map(|rel| {
+                    let path = root.join(&rel);
+                    (rel, path)
+                })
+                .collect(),
+        };
 
         let base_path = options.base_path.trim_end_matches('/').to_string();
         let mut ordered: Vec<&String> = files
-            .iter()
+            .keys()
             .filter(|f| !HOST_FILES.contains(&f.as_str()))
             .collect();
         // `a.html` claims `/a` before `a/index.html` does
@@ -147,25 +162,26 @@ impl Site {
             }
         }
 
-        let read = |name: &str| std::fs::read_to_string(root.join(name)).ok();
-        let header_rules = read("_headers")
+        let read = |name: &str| {
+            files
+                .get(name)
+                .and_then(|p| std::fs::read_to_string(p).ok())
+        };
+        let mut header_rules = read("_headers")
             .map(|t| HeaderRules::parse(&t))
             .unwrap_or_default();
-        let redirects = read("_redirects")
+        let mut redirects = read("_redirects")
             .map(|t| RedirectRules::parse(&t))
             .unwrap_or_default();
+        header_rules.extend(options.host.headers);
+        redirects.extend(options.host.redirects);
 
         let mut stubs = HashMap::new();
-        for rel in files.iter().filter(|f| f.ends_with(".html")) {
-            let path = root.join(rel);
-            if std::fs::metadata(&path)
-                .map(|m| m.len())
-                .unwrap_or(u64::MAX)
-                > 4096
-            {
+        for (rel, path) in files.iter().filter(|(f, _)| f.ends_with(".html")) {
+            if std::fs::metadata(path).map(|m| m.len()).unwrap_or(u64::MAX) > 4096 {
                 continue;
             }
-            if let Ok(text) = std::fs::read_to_string(&path) {
+            if let Ok(text) = std::fs::read_to_string(path) {
                 if let Some(c) = META_REFRESH.captures(&text) {
                     stubs.insert(rel.clone(), c[1].trim().to_string());
                 }
@@ -181,24 +197,41 @@ impl Site {
             header_rules,
             header_overrides: options.header_overrides,
             redirects,
+            server_routes: options.server_routes,
+            skipped_rules: options.host.skipped,
             stubs,
         })
     }
 
     pub fn files(&self) -> impl Iterator<Item = &str> {
-        self.files.iter().map(String::as_str)
+        self.files.keys().map(String::as_str)
     }
 
     pub fn has_file(&self, rel: &str) -> bool {
-        self.files.contains(rel)
+        self.files.contains_key(rel)
+    }
+
+    /// Where a published file lives on disk.
+    pub fn disk_path(&self, rel: &str) -> Option<&Path> {
+        self.files.get(rel).map(PathBuf::as_path)
     }
 
     pub fn file_size(&self, rel: &str) -> Option<u64> {
-        std::fs::metadata(self.root.join(rel)).ok().map(|m| m.len())
+        std::fs::metadata(self.disk_path(rel)?)
+            .ok()
+            .map(|m| m.len())
     }
 
     pub fn read_bytes(&self, rel: &str) -> Option<Vec<u8>> {
-        std::fs::read(self.root.join(rel)).ok()
+        std::fs::read(self.disk_path(rel)?).ok()
+    }
+
+    pub fn header_rules(&self) -> &HeaderRules {
+        &self.header_rules
+    }
+
+    pub fn server_routes(&self) -> &[ServerRoute] {
+        &self.server_routes
     }
 
     pub fn host(&self) -> &str {
@@ -272,13 +305,13 @@ impl Site {
                         }
                     }
                 }
-                return Resolution::Missing;
+                return self.server_or_missing(&decoded);
             }
             if !(400..500).contains(&t.status) {
                 return Resolution::Redirect {
                     to: t.location,
                     status: t.status,
-                    via: format!("_redirects: {}", t.from),
+                    via: via(&t.source, &t.from),
                 };
             }
             return Resolution::Missing;
@@ -292,8 +325,25 @@ impl Site {
                 },
                 None => Resolution::File(f.clone()),
             },
-            None => Resolution::Missing,
+            None => self.server_or_missing(&decoded),
         }
+    }
+
+    fn server_or_missing(&self, path: &str) -> Resolution {
+        let local = match path.strip_prefix(&self.base_path) {
+            Some(rest) if !self.base_path.is_empty() => {
+                if rest.is_empty() {
+                    "/"
+                } else {
+                    rest
+                }
+            }
+            _ => path,
+        };
+        self.server_routes
+            .iter()
+            .find(|r| r.pattern.is_match(local))
+            .map_or(Resolution::Missing, |r| Resolution::Server(r.route.clone()))
     }
 
     pub fn resolve_url(&self, url: &Url) -> Resolution {
@@ -327,6 +377,16 @@ impl Site {
                 Resolution::File(f) => {
                     return Followed {
                         file: Some(f),
+                        server: None,
+                        hops,
+                        foreign: false,
+                        looped: false,
+                    }
+                }
+                Resolution::Server(route) => {
+                    return Followed {
+                        file: None,
+                        server: Some(route),
                         hops,
                         foreign: false,
                         looped: false,
@@ -335,6 +395,7 @@ impl Site {
                 Resolution::Missing => {
                     return Followed {
                         file: None,
+                        server: None,
                         hops,
                         foreign: false,
                         looped: false,
@@ -343,6 +404,7 @@ impl Site {
                 Resolution::Foreign => {
                     return Followed {
                         file: None,
+                        server: None,
                         hops,
                         foreign: true,
                         looped: false,
@@ -352,6 +414,7 @@ impl Site {
                     let Ok(next) = current.join(&to) else {
                         return Followed {
                             file: None,
+                            server: None,
                             hops,
                             foreign: false,
                             looped: false,
@@ -360,6 +423,7 @@ impl Site {
                     if hops.contains(&next.to_string()) || next == *url {
                         return Followed {
                             file: None,
+                            server: None,
                             hops,
                             foreign: false,
                             looped: true,
@@ -372,6 +436,7 @@ impl Site {
         }
         Followed {
             file: None,
+            server: None,
             hops,
             foreign: false,
             looped: true,
@@ -401,6 +466,48 @@ impl Site {
             .collect();
         (!values.is_empty()).then(|| values.join(", "))
     }
+}
+
+impl Followed {
+    /// The URL answers on this site: a file or a server-rendered route.
+    pub fn answers(&self) -> bool {
+        self.file.is_some() || self.server.is_some()
+    }
+}
+
+fn via(source: &RuleSource, from: &str) -> String {
+    match source.line {
+        Some(line) => format!("{}:{line}: {from}", source.file),
+        None => format!("{}: {from}", source.file),
+    }
+}
+
+/// Every file under `root`, as `/`-joined paths relative to it.
+pub fn walk_files(root: &Path) -> Result<Vec<String>> {
+    let mut files = Vec::new();
+    for entry in walkdir::WalkDir::new(root)
+        .follow_links(false)
+        .sort_by_file_name()
+    {
+        let entry = entry.with_context(|| format!("reading {}", root.display()))?;
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let rel = entry
+            .path()
+            .strip_prefix(root)
+            .expect("walkdir stays under root");
+        let rel = rel
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy())
+            .collect::<Vec<_>>()
+            .join("/");
+        if rel.ends_with(".DS_Store") {
+            continue;
+        }
+        files.push(rel);
+    }
+    Ok(files)
 }
 
 #[cfg(test)]

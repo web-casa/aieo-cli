@@ -1,0 +1,19 @@
+preset: docusaurus
+exit: 0
+pages:
+  /about about.html <- src/pages/about.md [sitemap]
+  /blog blog.html <- - [sitemap]
+  /blog/archive blog/archive.html <- - [sitemap]
+  /blog/hello-world blog/hello-world.html <- blog/2024-05-01-hello-world.md [sitemap]
+  /docs/guide/getting-started docs/guide/getting-started.html <- docs/guide/01-getting-started.md [sitemap]
+  /docs/intro docs/intro.html <- docs/intro.md [sitemap]
+  / index.html <- src/pages/index.tsx [sitemap]
+multipage: 73.2 over 7 page(s): P01=pass P02=partial P03=not_applicable P04=fail
+findings:
+  warning C-ORPHAN-PAGE /blog @ blog.html
+  warning C-ORPHAN-PAGE /blog/archive @ blog/archive.html
+  notice F09 / @ index.html
+  notice F10 / @ index.html
+  notice P02 / @ -
+  notice P04 / @ -
+  notice T-MISSING-H1 /blog @ blog.html

@@ -105,7 +105,7 @@ impl<'a> Checker<'a> {
         }
     }
 
-    fn page(&self, file: &str) -> Option<&'a PageFacts> {
+    pub fn page(&self, file: &str) -> Option<&'a PageFacts> {
         self.by_file.get(file).map(|i| &self.pages[*i])
     }
 
@@ -152,6 +152,7 @@ impl<'a> Checker<'a> {
                     Some(_) => {}
                     None if !followed.foreign
                         && !followed.looped
+                        && followed.server.is_none()
                         && reported.insert(target.path().to_string()) =>
                     {
                         e.emit(
@@ -177,7 +178,7 @@ impl<'a> Checker<'a> {
                 let Some(target) = target.as_ref().filter(|t| self.site.is_own_url(t)) else {
                     continue;
                 };
-                if self.site.follow(target).file.is_none() {
+                if !self.site.follow(target).answers() {
                     e.emit(
                         "C-MD-ALTERNATE-MISSING",
                         None,
@@ -226,6 +227,28 @@ impl<'a> Checker<'a> {
                     &i.to_string(),
                     vec![ev("JSON parse error", "JSON 解析错误", err.clone())],
                     Some("application/ld+json".into()),
+                );
+            }
+            for issue in &p.jsonld_issues {
+                e.emit(
+                    issue.rule,
+                    None,
+                    page_loc(p),
+                    &issue.key,
+                    vec![
+                        ev("Type", "类型", issue.ty.clone()),
+                        match issue.rule {
+                            "T-JSONLD-MISSING-REQUIRED" => {
+                                ev("Missing", "缺少", issue.detail.clone())
+                            }
+                            "T-JSONLD-NO-CONTEXT" => {
+                                ev("@context", "@context", issue.detail.clone())
+                            }
+                            _ => ev("Status", "状态", issue.detail.clone()),
+                        },
+                        ev("Reference", "参考", issue.doc.clone()),
+                    ],
+                    Some(format!("\"{}\"", issue.ty)),
                 );
             }
             if p.bytes > 1_000_000 {
@@ -392,7 +415,7 @@ impl<'a> Checker<'a> {
             }
             let followed = self.site.follow(c);
             let Some(target) = followed.file else {
-                if !followed.looped {
+                if !followed.looped && followed.server.is_none() {
                     e.emit(
                         "C-CANONICAL-TARGET-MISSING",
                         None,
@@ -464,15 +487,18 @@ impl<'a> Checker<'a> {
                 let Some(target) = h.url.as_ref().filter(|u| self.site.is_own_url(u)) else {
                     continue;
                 };
-                let Some(file) = self.site.follow(target).file else {
-                    e.emit(
-                        "C-HREFLANG-TARGET-MISSING",
-                        None,
-                        page_loc(p),
-                        target.path(),
-                        vec![ev("Alternate", "备选", format!("{} → {target}", h.code))],
-                        needle,
-                    );
+                let followed = self.site.follow(target);
+                let Some(file) = followed.file else {
+                    if followed.server.is_none() {
+                        e.emit(
+                            "C-HREFLANG-TARGET-MISSING",
+                            None,
+                            page_loc(p),
+                            target.path(),
+                            vec![ev("Alternate", "备选", format!("{} → {target}", h.code))],
+                            needle,
+                        );
+                    }
                     continue;
                 };
                 if file == p.file {
@@ -638,7 +664,7 @@ impl<'a> Checker<'a> {
                 }
                 let followed = self.site.follow_http(&u);
                 let Some(target) = followed.file else {
-                    if !followed.looped && !followed.foreign {
+                    if !followed.looped && !followed.foreign && followed.server.is_none() {
                         at(
                             "C-SITEMAP-URL-MISSING",
                             "",
@@ -795,14 +821,15 @@ impl<'a> Checker<'a> {
             };
             let followed = self.site.follow(&target);
             match followed.file {
-                None if !followed.looped && !followed.foreign => e.emit(
-                    "C-LLMS-LINK-BROKEN",
-                    None,
-                    loc,
-                    target.path(),
-                    vec![ev("Link", "链接", format!("{} → {target}", entry.title))],
-                    Some(entry.url.clone()),
-                ),
+                None if !followed.looped && !followed.foreign && followed.server.is_none() => e
+                    .emit(
+                        "C-LLMS-LINK-BROKEN",
+                        None,
+                        loc,
+                        target.path(),
+                        vec![ev("Link", "链接", format!("{} → {target}", entry.title))],
+                        Some(entry.url.clone()),
+                    ),
                 Some(f) => {
                     if let Some(p) = self
                         .page(&f)

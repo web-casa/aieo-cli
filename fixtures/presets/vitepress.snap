@@ -1,0 +1,11 @@
+preset: vitepress
+exit: 0
+pages:
+  /about about.html <- docs/about.md [sitemap]
+  /blog/hello-world blog/hello-world.html <- docs/blog/hello-world.md [sitemap]
+  /guide/getting-started guide/getting-started.html <- docs/guide/getting-started.md [sitemap]
+  / index.html <- docs/index.md [sitemap]
+multipage: 81.3 over 4 page(s): P01=pass P02=pass P03=not_applicable P04=fail
+findings:
+  notice F09 / @ index.html
+  notice P04 / @ -

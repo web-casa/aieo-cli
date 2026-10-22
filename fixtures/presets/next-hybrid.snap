@@ -1,0 +1,14 @@
+preset: next
+exit: 0
+note: Next.js server build: 1 route(s) and 0 dynamic route(s) render only on request; links to them count as working, their HTML is not checked
+pages:
+  /about about.html <- src/app/about/page.tsx [sitemap]
+  /blog/hello-world blog/hello-world.html <- src/app/blog/[slug]/page.tsx [sitemap]
+  /guide/getting-started guide/getting-started.html <- src/app/guide/getting-started/page.tsx [sitemap]
+  / index.html <- src/app/page.tsx [sitemap]
+multipage: 81.3 over 4 page(s): P01=pass P02=pass P03=not_applicable P04=fail
+findings:
+  notice F09 / @ index.html
+  notice F10 / @ index.html
+  notice F14 / @ index.html
+  notice P04 / @ -

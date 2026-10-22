@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "rules": [
     {
       "id": "F01",
@@ -1060,6 +1060,118 @@
       "default_enabled": true
     },
     {
+      "id": "P01",
+      "family": "P",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 30,
+      "title": {
+        "en": "Multi-page metadata consistency",
+        "zh": "多页技术与元数据一致性"
+      },
+      "description": {
+        "en": "Unique titles/descriptions, canonicals and language across sampled pages",
+        "zh": "抽样页面的唯一标题/描述、canonical 与语言一致性"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "P02",
+      "family": "P",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 30,
+      "title": {
+        "en": "Documentation navigation & consumability",
+        "zh": "文档导航与内容可消费性"
+      },
+      "description": {
+        "en": "Nav landmarks, heading discipline and substance on content pages",
+        "zh": "内容页的导航标记、标题层级规范与内容充实度"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "P03",
+      "family": "P",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 20,
+      "title": {
+        "en": "API / ecommerce public information",
+        "zh": "API / 电商公开信息完整性"
+      },
+      "description": {
+        "en": "Machine-readable API/product/offer data (site-type aware)",
+        "zh": "机器可读的 API/商品/报价数据（按站点类型判定）"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
+      "id": "P04",
+      "family": "P",
+      "scope": "site",
+      "class": "scoring",
+      "weight": 20,
+      "title": {
+        "en": "Cross-page brand & entity consistency",
+        "zh": "跨页面品牌与实体信息一致性"
+      },
+      "description": {
+        "en": "One Organization/Brand identity (name, logo, sameAs) site-wide",
+        "zh": "全站统一的 Organization/Brand 身份（名称、logo、sameAs）"
+      },
+      "tier": {
+        "fail": "notice",
+        "partial": "notice"
+      },
+      "modes": [
+        "url",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true
+    },
+    {
       "id": "T-MISSING-TITLE",
       "family": "T",
       "scope": "page",
@@ -1385,6 +1497,87 @@
         "rust"
       ],
       "default_enabled": true
+    },
+    {
+      "id": "T-JSONLD-RETIRED-TYPE",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Structured data type no longer shown",
+        "zh": "结构化数据类型已不再展示"
+      },
+      "description": {
+        "en": "Google no longer shows rich results for this type (HowTo, FAQPage, SpecialAnnouncement, ClaimReview). The markup does no harm but earns nothing in Search.",
+        "zh": "Google 已不再为此类型（HowTo、FAQPage、SpecialAnnouncement、ClaimReview）展示富媒体结果。保留标记无害，但在搜索中没有收益。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/blog/2025/06/simplifying-search-results"
+    },
+    {
+      "id": "T-JSONLD-MISSING-REQUIRED",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Structured data missing required properties",
+        "zh": "结构化数据缺少必需属性"
+      },
+      "description": {
+        "en": "A JSON-LD item lacks a property Google requires for its rich result type, so the page is not eligible for that result.",
+        "zh": "JSON-LD 条目缺少 Google 对该富媒体结果类型要求的属性，页面因此无法获得该结果。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/structured-data/search-gallery"
+    },
+    {
+      "id": "T-JSONLD-NO-CONTEXT",
+      "family": "T",
+      "scope": "page",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "JSON-LD without schema.org @context",
+        "zh": "JSON-LD 缺少 schema.org @context"
+      },
+      "description": {
+        "en": "A JSON-LD block has no @context naming schema.org, so its types and properties are not schema.org terms and search engines ignore it.",
+        "zh": "JSON-LD 块没有指向 schema.org 的 @context，其中的类型和属性就不是 schema.org 词汇，搜索引擎会忽略它。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data"
     },
     {
       "id": "C-SITEMAP-URL-MISSING",
@@ -1978,6 +2171,258 @@
       ],
       "default_enabled": true,
       "source_url": "https://platform.openai.com/docs/bots"
+    },
+    {
+      "id": "K-SITE-ORIGIN-MISMATCH",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Framework config names another origin",
+        "zh": "框架配置声明了另一个站点来源"
+      },
+      "description": {
+        "en": "The production origin in the framework config differs from the origin being checked; canonical URLs, sitemaps and feeds generated from it point at the wrong host.",
+        "zh": "框架配置里的正式站点来源与本次检查的来源不一致；据此生成的 canonical、sitemap 和订阅源会指向错误的主机。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "K-BASE-PATH-MISMATCH",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Base path missing from canonical URLs",
+        "zh": "canonical URL 缺少 base 路径"
+      },
+      "description": {
+        "en": "The framework serves the site under a base path, but canonical URLs omit it and point at paths outside the site.",
+        "zh": "框架把站点部署在某个 base 路径下，但 canonical URL 没带这个前缀，指向了站点之外的路径。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "K-TRAILING-SLASH-MISMATCH",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "URLs contradict the trailing-slash setting",
+        "zh": "URL 与尾斜杠设置相矛盾"
+      },
+      "description": {
+        "en": "Canonical or sitemap URLs use the trailing-slash form the framework does not serve; each one costs a redirect or splits signals between two URLs.",
+        "zh": "canonical 或 sitemap 中的 URL 用的是框架不提供的尾斜杠形式；每个这样的 URL 都要多一次跳转，或者把信号分散到两个 URL 上。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls"
+    },
+    {
+      "id": "K-REDIRECT-LOOP",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Redirect loop",
+        "zh": "重定向循环"
+      },
+      "description": {
+        "en": "Redirect rules send a URL back to itself; browsers and crawlers give up and the URL never resolves.",
+        "zh": "重定向规则让一个 URL 绕回自身；浏览器和爬虫都会放弃，这个 URL 永远打不开。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/301-redirects"
+    },
+    {
+      "id": "K-REDIRECT-CHAIN",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Redirect chain",
+        "zh": "重定向链"
+      },
+      "description": {
+        "en": "A redirect leads to another redirect. Point the first rule straight at the final URL.",
+        "zh": "一个重定向又跳到另一个重定向。应让第一条规则直接指向最终 URL。"
+      },
+      "tier": {
+        "default": "notice"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/301-redirects"
+    },
+    {
+      "id": "K-REDIRECT-TARGET-MISSING",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Redirect to a missing page",
+        "zh": "重定向到不存在的页面"
+      },
+      "description": {
+        "en": "A redirect rule sends visitors to a path on this site that the build does not serve (404).",
+        "zh": "重定向规则把访问者送到本站一个构建产物里不存在的路径（404）。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/301-redirects"
+    },
+    {
+      "id": "K-HEADERS-NOINDEX",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Header rule sets noindex on pages",
+        "zh": "响应头规则给页面加了 noindex"
+      },
+      "description": {
+        "en": "A _headers / vercel.json / netlify.toml / Next.js header rule adds X-Robots-Tag: noindex to HTML pages; search engines drop them from the index.",
+        "zh": "_headers、vercel.json、netlify.toml 或 Next.js 的响应头规则给 HTML 页面加了 X-Robots-Tag: noindex，搜索引擎会把这些页面移出索引。"
+      },
+      "tier": {
+        "default": "error"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/robots-meta-tag"
+    },
+    {
+      "id": "K-EXPORT-IGNORED-CONFIG",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Config not applied by static export",
+        "zh": "静态导出不会应用的配置"
+      },
+      "description": {
+        "en": "Next.js static export (output: \"export\") does not apply redirects, rewrites or headers from next.config; configure them on the host.",
+        "zh": "Next.js 静态导出（output: \"export\"）不会应用 next.config 里的 redirects、rewrites 和 headers，需要在托管平台上配置。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "official",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://nextjs.org/docs/app/guides/static-exports#unsupported-features"
+    },
+    {
+      "id": "K-SPA-SHELL",
+      "family": "K",
+      "scope": "site",
+      "class": "finding",
+      "weight": 0,
+      "title": {
+        "en": "Routes served by one client-rendered shell",
+        "zh": "所有路由共用一个客户端渲染的空壳"
+      },
+      "description": {
+        "en": "Many URLs are answered by the same HTML shell that renders in the browser. Crawlers that do not run JavaScript, most AI crawlers among them, see the shell only: the same title, canonical and no content. Prerender or server-render the pages.",
+        "zh": "许多 URL 返回的是同一个在浏览器里渲染的 HTML 空壳。不执行 JavaScript 的爬虫（包括大多数 AI 爬虫）只能看到这个空壳：同样的标题、同样的 canonical、没有正文。应改为预渲染或服务端渲染。"
+      },
+      "tier": {
+        "default": "warning"
+      },
+      "modes": [
+        "config",
+        "dist"
+      ],
+      "evidence_level": "heuristic",
+      "implementations": [
+        "rust"
+      ],
+      "default_enabled": true,
+      "source_url": "https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics"
     },
     {
       "id": "D-PAGE-REMOVED",

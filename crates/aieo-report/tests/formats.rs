@@ -48,6 +48,7 @@ fn run(
         &Options {
             settings: &settings,
             project: None,
+            rendering: None,
             baseline,
         },
     );

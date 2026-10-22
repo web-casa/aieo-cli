@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>Example Inc Blog</title>
+        <link>https://example.com/blog</link>
+        <description>Example Inc Blog</description>
+        <lastBuildDate>Wed, 01 May 2024 00:00:00 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>en</language>
+        <item>
+            <title><![CDATA[Hello World]]></title>
+            <link>https://example.com/blog/hello-world</link>
+            <guid>https://example.com/blog/hello-world</guid>
+            <pubDate>Wed, 01 May 2024 00:00:00 GMT</pubDate>
+            <description><![CDATA[The first blog post on the Example Inc fixture site, saying hello to the world.]]></description>
+            <content:encoded><![CDATA[<p>This example page exists so that an SEO checker can read real framework build output. It has a unique title, a meta description, a canonical link and a single top level heading. The navigation below links every other page of the site, which lets a crawler discover the full set of routes without needing a sitemap file at all.</p>
+<p><a class="" href="https://example.com/">Home</a> | <a class="" href="https://example.com/about">About</a> | <a class="" href="https://example.com/docs/guide/getting-started">Getting started</a> | <a class="" href="https://example.com/blog/hello-world">Hello world</a></p>]]></content:encoded>
+        </item>
+    </channel>
+</rss>

@@ -1,0 +1,8 @@
+{{ define "head" }}
+  {{- $org := dict "@context" "https://schema.org" "@type" "Organization" "name" "Example Inc" "url" (strings.TrimSuffix "/" site.BaseURL) "logo" ("logo.png" | absURL) }}
+  <script type="application/ld+json">{{ $org | jsonify | safeJS }}</script>
+{{ end }}
+{{ define "main" }}
+  <h1>{{ .Params.heading }}</h1>
+  {{ .Content }}
+{{ end }}

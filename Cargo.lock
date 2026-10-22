@@ -104,6 +104,7 @@ dependencies = [
  "scraper",
  "serde_json",
  "tempfile",
+ "toml",
  "url",
  "walkdir",
 ]

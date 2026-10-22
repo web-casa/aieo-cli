@@ -1,0 +1,12 @@
+preset: nuxt
+exit: 0
+pages:
+  /about/ about/index.html <- app/pages/about.vue [sitemap]
+  /blog/hello-world/ blog/hello-world/index.html <- app/pages/blog/[slug].vue [sitemap]
+  /guide/getting-started/ guide/getting-started/index.html <- app/pages/guide/getting-started.vue [sitemap]
+  / index.html <- app/pages/index.vue [sitemap]
+multipage: 81.3 over 4 page(s): P01=pass P02=pass P03=not_applicable P04=fail
+findings:
+  notice F09 / @ index.html
+  notice F14 / @ index.html
+  notice P04 / @ -

@@ -17,8 +17,8 @@ use aieo_core::spec::{spec, RuleClass};
 use aieo_core::{Lang, Tier};
 use aieo_report::{build_bundle, github, markdown, pretty, sarif, Paths, RunMeta};
 use aieo_rules::{check, Options};
-use aieo_site::preset::{detect, infer_origin, PresetKind};
-use aieo_site::{Site, SiteOptions};
+use aieo_site::preset::{detect, infer_origin, PresetKind, Rendering};
+use aieo_site::Site;
 
 /// Exit codes: 0 gate passed · 1 gate failed · 2 incomplete evidence or usage error.
 const EXIT_GATE: u8 = 1;
@@ -78,7 +78,7 @@ enum Command {
     },
     /// List the rules
     Rules {
-        /// Only this family (F, T, C, D, G, H)
+        /// Only this family (F, P, T, C, K, D, G, H)
         #[arg(long)]
         family: Option<String>,
         /// Include rules this CLI does not run (aieo.ee only)
@@ -99,8 +99,8 @@ struct Target {
     /// Production origin, e.g. https://example.com
     #[arg(long)]
     site: Option<String>,
-    /// Framework preset
-    #[arg(long, value_parser = ["auto", "static", "astro", "starlight"])]
+    /// Framework preset (default: detected)
+    #[arg(long, value_parser = ["auto", "static", "astro", "starlight", "next", "nuxt", "vue", "tanstack", "hugo", "vitepress", "docusaurus"])]
     preset: Option<String>,
     /// Configuration file (default: <project>/aieo.toml)
     #[arg(long)]
@@ -148,6 +148,7 @@ struct CheckArgs {
 
 struct Prepared {
     project: aieo_site::preset::Project,
+    rendering: Rendering,
     config: Config,
     dist_rel: String,
     site: Site,
@@ -207,13 +208,17 @@ fn prepare(t: &Target) -> Result<Prepared> {
         );
     }
     let mut notes = Vec::new();
+    let build = project.build(&dist);
+    if let Some(problem) = &build.problem {
+        bail!("{problem}");
+    }
     let origin = if let Some(s) = &t.site {
         origin_of(s)?
     } else if let Some(s) = &config.site {
         origin_of(s)?
     } else if let Some(s) = &project.site {
         origin_of(s)?
-    } else if let Some((u, how)) = infer_origin(&dist) {
+    } else if let Some((u, how)) = infer_origin(&dist, build.options.layout.as_deref()) {
         let o = origin_of(u.as_str())?;
         notes.push(format!(
             "site origin {} inferred from the {how}; set `site` in {CONFIG_FILE} or pass --site",
@@ -223,17 +228,14 @@ fn prepare(t: &Target) -> Result<Prepared> {
     } else {
         bail!("cannot tell the site's production origin: pass --site https://… or set `site` in {CONFIG_FILE}");
     };
-    let site = Site::load(
-        &dist,
-        origin,
-        SiteOptions {
-            base_path: project.base.clone().unwrap_or_default(),
-            ..Default::default()
-        },
-    )?;
+    notes.extend(project.notes.iter().cloned());
+    notes.extend(build.notes);
+    let rendering = build.rendering.unwrap_or(project.rendering);
+    let site = Site::load(&dist, origin, build.options)?;
     let dist_rel = pathdiff(&dist, &root);
     Ok(Prepared {
         project,
+        rendering,
         config,
         dist_rel,
         site,
@@ -307,6 +309,7 @@ fn run_check(
         &Options {
             settings: &settings,
             project: Some(&prepared.project),
+            rendering: Some(prepared.rendering),
             baseline,
         },
     );
@@ -552,7 +555,12 @@ fn cmd_init(target: Target, force: bool) -> Result<u8> {
         .site
         .clone()
         .or_else(|| project.site.clone())
-        .or_else(|| infer_origin(&root.join(&dist)).map(|(u, _)| u.origin().ascii_serialization()));
+        .or_else(|| {
+            let dist = root.join(&dist);
+            let build = project.build(&dist);
+            infer_origin(&dist, build.options.layout.as_deref())
+                .map(|(u, _)| u.origin().ascii_serialization())
+        });
     let site_line = match &site {
         Some(s) => format!("site = \"{}\"", origin_of(s)?.origin().ascii_serialization()),
         None => "# site = \"https://example.com\"   # production origin (required when the build does not declare it)".into(),

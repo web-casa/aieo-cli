@@ -4,10 +4,12 @@ SEO/GEO checks for a site's **build output**, before it ships — the inside
 view for [aieo.ee](https://aieo.ee).
 
 aieo.ee checks what a site serves over HTTP. `aieo` reads what the build
-produced (`dist/`) and what the framework declares, and checks that the
-pieces agree with each other: sitemap ↔ robots.txt ↔ canonical ↔ hreflang ↔
-internal links ↔ llms.txt. With a baseline it fails a build only on what the
-change made worse.
+produced (`dist/`), what the framework declares and what the deployment
+config adds (`_redirects`, `_headers`, `vercel.json`, `netlify.toml`,
+Next.js manifests), and checks that the pieces agree with each other:
+sitemap ↔ robots.txt ↔ canonical ↔ hreflang ↔ internal links ↔ llms.txt ↔
+redirects ↔ framework settings. With a baseline it fails a build only on
+what the change made worse.
 
 ```sh
 aieo init                       # detect the framework, write aieo.toml
@@ -18,18 +20,42 @@ aieo export                     # .aieo/bundle.json.gz (aieo-bundle/v1) for aieo
 aieo rules / aieo explain C-SITEMAP-URL-NOINDEX
 ```
 
-Presets in 0.1: `static` (any build directory, `_headers` / `_redirects`
-honoured), `astro`, `starlight` (pages are traced back to
-`src/content/docs/**` / `src/pages/**`). Next.js, Nuxt/Vue, TanStack, Hugo,
-VitePress and Docusaurus follow in 0.2.
+## Frameworks
+
+The preset is detected from `package.json` and config files (`--preset` to
+force one). Findings point at the source file a page was built from.
+
+| Preset | Build checked | Read from the config (literals only) | Pages traced to |
+|---|---|---|---|
+| `static` | any directory | — | — |
+| `astro`, `starlight` | `dist/` (`outDir`) | `site`, `base`, `trailingSlash` | `src/pages/**`, `src/content/docs/**` |
+| `next` | `out/` (`output: 'export'`) or `.next/` | `basePath`, `trailingSlash`, `output`, `metadataBase` | `app/**/page.*`, `pages/**` |
+| `nuxt` | `.output/public` | `site.url`, `app.baseURL`, `ssr`, `routeRules` redirects | `app/pages/**`, `pages/**` |
+| `vue` | `dist/` (`build.outDir`) | `base` | `src/pages/**` (file routing) |
+| `tanstack` | `dist/client`, `.output/public`, `dist/` | `base` | `src/routes/**` |
+| `hugo` | `public/` (`publishDir`) | `baseURL`, `uglyURLs`, languages | `content/**` |
+| `vitepress` | `.vitepress/dist` | `sitemap.hostname`, `base`, `cleanUrls`, `srcDir` | `**/*.md` |
+| `docusaurus` | `build/` | `url`, `baseUrl`, `trailingSlash` | `docs/**`, `blog/**`, `src/pages/**` |
+
+Server builds (Next.js `.next/`, Nuxt and TanStack Start with a server
+bundle) are served as production would: prerendered HTML, `public/`, the
+redirects/rewrites/headers of `routes-manifest.json`, and every other route
+as *rendered on request* — links to it count as working, its HTML is not
+checked, and a server-rendered homepage makes the homepage modules
+unverified (exit 2 unless `--allow-incomplete`). Client-rendered SPAs are
+checked for what crawlers without JavaScript see (`K-SPA-SHELL`).
+`fixtures/presets/` holds a real build of the same site per framework with
+its snapshot (`cargo test -p aieo-cli --test presets`).
 
 ## What it checks
 
 | Family | | Examples |
 |---|---|---|
 | **F01–F18** | aieo.ee's AI-readiness modules, judged from the build | robots.txt AI-crawler matrix, noindex, sitemap, canonical, llms.txt, content without JS |
-| **T-…** | per page | missing title, duplicate titles (hreflang alternates excepted), malformed JSON-LD |
+| **P01–P04** | multi-page modules (GEOReady's), over every indexable page, scored 0–100 on their own | unique metadata, navigation and substance, API / product data, one organization identity |
+| **T-…** | per page | missing title, duplicate titles (hreflang alternates excepted), malformed JSON-LD, JSON-LD without schema.org `@context`, missing properties Google requires for a rich result, retired rich result types (HowTo, FAQPage, …) |
 | **C-…** | across the build | sitemap lists a page that is missing / noindex / non-canonical / on another host / blocked by robots.txt; hreflang without return link; canonical to a missing page or another host; broken internal links; orphan pages; llms.txt links to missing pages; `Disallow: /` shipped to production; AI search crawlers blocked |
+| **K-…** | configuration | framework `site` / base path / trailing-slash setting contradicted by canonical and sitemap URLs; redirect loops, chains and dead targets (with file and line); a header rule that noindexes sitemap pages; Next.js `redirects()` ignored by static export; routes answered by one client-rendered shell |
 | **D-…** | against a baseline | page removed without redirect, page turned noindex, canonical changed, hreflang or structured data lost, content shrank |
 
 Every rule has an id, a tier and a source: `aieo rules`, `aieo explain <id>`.
@@ -95,8 +121,11 @@ the project. Without the action:
 
 `--format pretty | json | sarif | github | markdown`, plus any number of
 `--report FORMAT=PATH` (`bundle` = gzip JSON). JSON and the bundle are
-`aieo-bundle/v1` (`spec/bundle.schema.json`): findings, page inventory and
-scores — never page source, raw logs or IP addresses.
+`aieo-bundle/v1` (`spec/bundle.schema.json`): findings, page inventory,
+readiness and multi-page scores — never page source, raw logs or IP
+addresses. Configuration findings carry the config file and line
+(`astro.config.mjs:4`, `vercel.json:12`), so SARIF and GitHub annotations
+land on the setting to change.
 
 ## Development
 
@@ -108,8 +137,8 @@ pnpm --filter @aieo/rules export:cli <path to this repo>
 ```
 
 Crates: `aieo-core` (spec, findings, config, bundle) · `aieo-site` (build
-directory as a static host: routes, `_headers`, `_redirects`, robots,
-sitemaps, HTML, presets) · `aieo-rules` (F / T / C / D) · `aieo-report`
-(formats) · `aieo-cli` (the `aieo` binary).
+directory as production serves it: routes, host rules, robots, sitemaps,
+HTML, framework presets) · `aieo-rules` (F / P / T / C / K / D) ·
+`aieo-report` (formats) · `aieo-cli` (the `aieo` binary).
 
 MIT licensed.

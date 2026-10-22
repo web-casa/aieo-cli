@@ -70,6 +70,22 @@ pub fn render(bundle: &Bundle, lang: Lang, per_rule: usize) -> String {
             r.scores.base,
             r.scores.bonus
         );
+        if let Some(mp) = &r.multipage {
+            if mp.modules.iter().any(|m| m.status != "not_applicable") {
+                let _ = writeln!(
+                    out,
+                    "{} **{:.1}** ({} {})",
+                    if zh {
+                        "多页一致性："
+                    } else {
+                        "Multi-page consistency:"
+                    },
+                    mp.score,
+                    mp.pages,
+                    if zh { "页" } else { "pages" }
+                );
+            }
+        }
     }
     if sum.incomplete {
         let _ = writeln!(

@@ -1,0 +1,8 @@
+baseURL = 'https://example.com/'
+locale = 'en'
+title = 'Example Inc'
+enableRobotsTXT = true
+disableKinds = ['taxonomy', 'term', 'section', 'rss']
+
+[params]
+  description = 'Example Inc test site used for SEO checker fixtures.'

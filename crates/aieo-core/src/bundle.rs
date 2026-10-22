@@ -67,6 +67,23 @@ pub struct Readiness {
     pub modules: Vec<ReadinessModule>,
     #[serde(with = "scores_serde")]
     pub scores: Scores,
+    /// P01–P04 over every content page (absent in bundles before rules 2.1)
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub multipage: Option<Multipage>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Multipage {
+    pub modules: Vec<MultipageModule>,
+    pub score: f64,
+    pub pages: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MultipageModule {
+    pub id: String,
+    pub status: String,
+    pub ratio: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

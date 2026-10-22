@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="{{ site.Language.Locale | default "en" }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ .Title }}</title>
+  <meta name="description" content="{{ .Description | default site.Params.description }}">
+  {{- if not (eq .Kind "404") }}
+  <link rel="canonical" href="{{ .Permalink }}">
+  {{- end }}
+  {{- block "head" . }}{{ end }}
+</head>
+<body>
+  <nav>
+    <a href="{{ relref . "/_index.md" }}">Home</a> |
+    <a href="{{ relref . "/about.md" }}">About</a> |
+    <a href="{{ relref . "/guide/getting-started.md" }}">Getting started</a> |
+    <a href="{{ relref . "/blog/hello-world.md" }}">Hello world</a>
+  </nav>
+  <main>
+    {{- block "main" . }}{{ end }}
+  </main>
+</body>
+</html>

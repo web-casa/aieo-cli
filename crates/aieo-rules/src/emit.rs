@@ -99,4 +99,45 @@ impl<'a> Emitter<'a> {
         };
         self.out.push(Pending { finding, needle });
     }
+
+    /// Record a hit located in a configuration file at a known line
+    /// (`file` relative to the project root, or to the build for `_redirects`
+    /// / `_headers`, which `in_build` marks).
+    #[allow(clippy::too_many_arguments)]
+    pub fn emit_config(
+        &mut self,
+        rule: &str,
+        url_path: Option<String>,
+        url: Option<String>,
+        file: &str,
+        in_build: bool,
+        line: Option<usize>,
+        key: &str,
+        evidence: Vec<Evidence>,
+    ) {
+        let before = self.out.len();
+        let (build_file, source) = if in_build {
+            (Some(file.to_string()), None)
+        } else {
+            (None, Some(file.to_string()))
+        };
+        self.emit(
+            rule,
+            None,
+            Loc {
+                url_path,
+                url,
+                file: build_file,
+                source,
+            },
+            key,
+            evidence,
+            None,
+        );
+        if self.out.len() > before {
+            if let Some(p) = self.out.last_mut() {
+                p.finding.line = line.map(|l| l as u32);
+            }
+        }
+    }
 }

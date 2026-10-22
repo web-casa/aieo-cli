@@ -1,0 +1,12 @@
+preset: vue
+exit: 0
+note: routes are defined in code (vue-router); findings point at build files, not sources
+pages:
+  / index.html <- - [sitemap]
+multipage: 0.0 over 1 page(s): P01=not_applicable P02=not_applicable P03=not_applicable P04=not_applicable
+findings:
+  warning F10 / @ index.html
+  warning F14 / @ index.html
+  warning K-SPA-SHELL / @ index.html
+  notice F09 / @ index.html
+  notice T-MISSING-H1 / @ index.html

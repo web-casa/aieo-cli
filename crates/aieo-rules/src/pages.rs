@@ -17,6 +17,9 @@ pub enum PageKind {
     Content,
     /// the host's 404 page
     NotFound,
+    /// a host fallback shell, never a page of its own (`200.html` SPA
+    /// fallback, `500.html`, Next.js `_global-error.html`)
+    Fallback,
     /// a meta-refresh redirect page
     Redirect,
     /// search-console verification file
@@ -53,6 +56,13 @@ pub struct PageFacts {
     pub images_missing_alt: usize,
     pub jsonld_failures: Vec<String>,
     pub jsonld_types: Vec<String>,
+    /// schema.org issues of the blocks that parsed
+    pub jsonld_issues: Vec<crate::structured::Issue>,
+    /// organization identity across the page's JSON-LD (P03, P04)
+    pub entities: crate::structured::Entities,
+    pub has_nav: bool,
+    /// visible text length, whitespace collapsed, in UTF-16 units (as GEOReady counts)
+    pub text_len: usize,
     pub words: u64,
     /// same-site link targets (fragment dropped), as written and resolved
     pub links: Vec<(String, Url)>,
@@ -105,8 +115,10 @@ fn says_noindex(value: &str) -> bool {
 }
 
 fn page_kind(site: &Site, rel: &str) -> PageKind {
-    if rel == "404.html" || rel == "404/index.html" {
+    if matches!(rel, "404.html" | "404/index.html" | "_not-found.html") {
         PageKind::NotFound
+    } else if matches!(rel, "200.html" | "500.html" | "_global-error.html") {
+        PageKind::Fallback
     } else if site.redirect_stub(rel).is_some() {
         PageKind::Redirect
     } else if VERIFICATION.is_match(rel) {
@@ -145,6 +157,10 @@ fn extract(site: &Site, project: Option<&Project>, rel: &str) -> PageFacts {
         images_missing_alt: 0,
         jsonld_failures: Vec::new(),
         jsonld_types: Vec::new(),
+        jsonld_issues: Vec::new(),
+        entities: Default::default(),
+        has_nav: false,
+        text_len: aieo_core::text::utf16_len(&text),
         words: word_count(&text),
         links: Vec::new(),
         markdown_alternates: Vec::new(),
@@ -188,7 +204,11 @@ fn extract(site: &Site, project: Option<&Project>, rel: &str) -> PageFacts {
     facts.h1_count = doc.headings().0.len();
     facts.images_missing_alt = doc.images_missing_alt();
     facts.jsonld_failures = doc.jsonld_failures();
-    facts.jsonld_types = jsonld_types(&doc.jsonld_blocks());
+    let blocks = doc.jsonld_blocks();
+    facts.jsonld_types = jsonld_types(&blocks);
+    facts.jsonld_issues = crate::structured::check(&blocks);
+    facts.entities = crate::structured::entities(&blocks);
+    facts.has_nav = doc.has_nav();
     for link in doc.links(&url) {
         if let Ok(mut target) = url.join(&link.href) {
             target.set_fragment(None);

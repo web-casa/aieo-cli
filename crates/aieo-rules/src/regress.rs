@@ -57,7 +57,7 @@ pub fn run(
         let Some(new) = now.get(&path) else {
             // gone from the inventory: fine if a redirect (or another file) still answers
             let url = Url::parse(&site.url_for(&path)).expect("site URL");
-            if site.follow(&url).file.is_none() {
+            if !site.follow(&url).answers() {
                 e.emit(
                     "D-PAGE-REMOVED",
                     None,

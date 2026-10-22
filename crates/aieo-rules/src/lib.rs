@@ -1,13 +1,17 @@
 //! The rules aieo-cli runs over a build directory: readiness modules (F,
-//! conformance-locked to aieo.ee), page checks (T), build contracts (C) and
-//! regressions against a baseline (D).
+//! conformance-locked to aieo.ee), multi-page modules (P), page checks
+//! (T), build contracts (C), configuration (K) and regressions against a
+//! baseline (D).
 
 pub mod checks;
+pub mod config_rules;
 pub mod emit;
 pub mod llms;
+pub mod multipage;
 pub mod pages;
 pub mod readiness;
 pub mod regress;
+pub mod structured;
 
 use std::collections::{BTreeMap, HashMap, HashSet};
 
@@ -16,7 +20,7 @@ use aieo_core::config::{GateCondition, Settings};
 use aieo_core::spec::spec;
 use aieo_core::text::line_of;
 use aieo_core::{Finding, FindingStatus, Tier};
-use aieo_site::preset::Project;
+use aieo_site::preset::{Project, Rendering};
 use aieo_site::Site;
 
 use crate::emit::{Emitter, Loc, Pending};
@@ -26,11 +30,14 @@ use crate::readiness::{ReadinessReport, Status};
 pub struct Options<'a> {
     pub settings: &'a Settings,
     pub project: Option<&'a Project>,
+    /// how the build renders (preset + build output), when known
+    pub rendering: Option<Rendering>,
     pub baseline: Option<&'a Bundle>,
 }
 
 pub struct Outcome {
     pub readiness: ReadinessReport,
+    pub multipage: multipage::MultipageReport,
     pub pages: Vec<PageRecord>,
     pub sitemaps: Vec<String>,
     pub robots_txt: bool,
@@ -107,6 +114,57 @@ fn readiness_findings(site: &Site, report: &ReadinessReport, e: &mut Emitter) {
     }
 }
 
+/// P modules that failed or are partial, as site findings on the homepage URL.
+fn multipage_findings(site: &Site, report: &multipage::MultipageReport, e: &mut Emitter) {
+    let home = format!("{}/", site.base_path);
+    for m in &report.modules {
+        let rule = spec().expect_rule(m.id);
+        let tier = match m.status {
+            Status::Fail => rule.tier.fail,
+            Status::Partial => rule.tier.partial,
+            _ => None,
+        };
+        let Some(tier) = tier else { continue };
+        let mut evidence = m.evidence.clone();
+        evidence.push(aieo_core::Evidence::new(
+            aieo_core::Localized::new("Ratio", "达成率"),
+            format!("{:.2} over {} page(s)", m.ratio, report.pages),
+        ));
+        if let Some(fix) = &m.fix {
+            evidence.push(aieo_core::Evidence::new(
+                aieo_core::Localized::new("Fix", "修复"),
+                fix.en.clone(),
+            ));
+        }
+        e.emit(
+            m.id,
+            Some(tier),
+            Loc {
+                url_path: Some(home.clone()),
+                url: Some(site.url_for(&home)),
+                file: None,
+                source: None,
+            },
+            "",
+            evidence,
+            None,
+        );
+    }
+}
+
+/// Whether the build serves a parseable `openapi.json` and an AI plugin manifest (P03).
+fn api_documents(site: &Site) -> (bool, bool) {
+    let read = |path: &str| {
+        let url = url::Url::parse(&site.url_for(&format!("{}{path}", site.base_path))).ok()?;
+        let file = site.follow_http(&url).file?;
+        String::from_utf8(site.read_bytes(&file)?).ok()
+    };
+    let openapi = read("/openapi.json")
+        .is_some_and(|t| serde_json::from_str::<serde_json::Value>(&t).is_ok());
+    let plugin = read("/.well-known/ai-plugin.json").is_some_and(|t| !t.trim().is_empty());
+    (openapi, plugin)
+}
+
 fn locate_lines(site: &Site, pending: &mut [Pending]) {
     let mut by_file: BTreeMap<String, Vec<usize>> = BTreeMap::new();
     for (i, p) in pending.iter().enumerate() {
@@ -126,14 +184,78 @@ fn locate_lines(site: &Site, pending: &mut [Pending]) {
     }
 }
 
+/// Modules judged from robots.txt, sitemaps, llms.txt or openapi.json
+/// rather than the homepage.
+const SITE_FILE_MODULES: [&str; 5] = ["F02", "F03", "F05", "F16", "F18"];
+
+/// Without a homepage file the homepage modules have nothing to judge:
+/// unverified, not failed. A server build may render `/` on request.
+fn homepage_absent(site: &Site, report: &mut ReadinessReport) {
+    let home = format!("{}/", site.base_path);
+    let Ok(url) = url::Url::parse(&site.url_for(&home)) else {
+        return;
+    };
+    let followed = site.follow_http(&url);
+    if followed.file.is_some() {
+        return;
+    }
+    let why = match &followed.server {
+        Some(route) => format!("rendered on request (server route {route}); not in the build"),
+        None => "no homepage file in the build".to_string(),
+    };
+    for m in report
+        .modules
+        .iter_mut()
+        .filter(|m| !SITE_FILE_MODULES.contains(&m.id))
+    {
+        m.status = Status::Unverified;
+        m.ratio = 0.0;
+        m.fix = None;
+        m.evidence = vec![aieo_core::Evidence::new(
+            aieo_core::Localized::new("Homepage", "首页"),
+            why.clone(),
+        )];
+    }
+    report.scores.incomplete = true;
+    if let Some(route) = &followed.server {
+        report
+            .incomplete_reasons
+            .retain(|r| !r.contains("no homepage"));
+        report.incomplete_reasons.push(format!(
+            "the homepage renders on request (server route {route}), so the homepage modules could not be checked — prerender / or check the deployed site with aieo.ee; --allow-incomplete gates on the rest"
+        ));
+    }
+}
+
 pub fn check(site: &Site, opts: &Options) -> Outcome {
-    let readiness = readiness::run(site);
+    let mut readiness = readiness::run(site);
+    homepage_absent(site, &mut readiness);
     let facts = pages::collect(site, opts.project);
     let checker = checks::Checker::new(site, &facts);
     let mut e = Emitter::new(opts.settings);
 
     readiness_findings(site, &readiness, &mut e);
     let graph = checker.run(&mut e);
+    config_rules::run(
+        &config_rules::Ctx {
+            site,
+            checker: &checker,
+            pages: &facts,
+            graph: &graph,
+            project: opts.project,
+            rendering: opts.rendering,
+        },
+        &mut e,
+    );
+    let (openapi, plugin) = api_documents(site);
+    let multipage = multipage::run(
+        &facts,
+        &|p| checker.canonical_self(p),
+        readiness.site_type,
+        openapi,
+        plugin,
+    );
+    multipage_findings(site, &multipage, &mut e);
 
     let pages: Vec<PageRecord> = facts
         .iter()
@@ -215,6 +337,7 @@ pub fn check(site: &Site, opts: &Options) -> Outcome {
     }
     Outcome {
         readiness,
+        multipage,
         pages,
         sitemaps: graph.sitemaps,
         robots_txt: graph.robots_txt,

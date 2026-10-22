@@ -1,0 +1,10 @@
+preset: nuxt
+exit: 2
+note: Nuxt server build: 1 route(s) and 1 dynamic route(s) render only on request; links to them count as working, their HTML is not checked
+incomplete: the homepage renders on request (server route /), so the homepage modules could not be checked — prerender / or check the deployed site with aieo.ee; --allow-incomplete gates on the rest
+pages:
+  /about/ about/index.html <- app/pages/about.vue [sitemap]
+  /guide/getting-started/ guide/getting-started/index.html <- app/pages/guide/getting-started.vue [sitemap]
+multipage: 75.0 over 2 page(s): P01=pass P02=pass P03=not_applicable P04=fail
+findings:
+  notice P04 / @ -

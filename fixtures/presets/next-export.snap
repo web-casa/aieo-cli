@@ -1,0 +1,14 @@
+preset: next
+exit: 0
+pages:
+  /about about.html <- app/about/page.tsx [sitemap]
+  /blog/hello-world blog/hello-world.html <- app/blog/[slug]/page.tsx [sitemap]
+  /guide/getting-started guide/getting-started.html <- app/guide/getting-started/page.tsx [sitemap]
+  / index.html <- app/page.tsx [sitemap]
+multipage: 81.3 over 4 page(s): P01=pass P02=pass P03=not_applicable P04=fail
+findings:
+  warning K-EXPORT-IGNORED-CONFIG - @ next.config.ts:7
+  notice F09 / @ index.html
+  notice F10 / @ index.html
+  notice F14 / @ index.html
+  notice P04 / @ -

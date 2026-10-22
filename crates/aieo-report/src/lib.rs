@@ -8,8 +8,8 @@ pub mod pretty;
 pub mod sarif;
 
 use aieo_core::bundle::{
-    Bundle, DiffInfo, Gate, Inventory, Privacy, Producer, Readiness, ReadinessModule, RunInfo,
-    SiteInfo, Summary, TierCounts, BUNDLE_SCHEMA,
+    Bundle, DiffInfo, Gate, Inventory, Multipage, MultipageModule, Privacy, Producer, Readiness,
+    ReadinessModule, RunInfo, SiteInfo, Summary, TierCounts, BUNDLE_SCHEMA,
 };
 use aieo_core::config::GateCondition;
 use aieo_core::spec::spec;
@@ -57,6 +57,20 @@ pub fn build_bundle(outcome: &Outcome, meta: &RunMeta) -> Bundle {
             })
             .collect(),
         scores: outcome.readiness.scores,
+        multipage: Some(Multipage {
+            modules: outcome
+                .multipage
+                .modules
+                .iter()
+                .map(|m| MultipageModule {
+                    id: m.id.to_string(),
+                    status: m.status.as_str().to_string(),
+                    ratio: rounded_ratio(m.ratio),
+                })
+                .collect(),
+            score: outcome.multipage.score,
+            pages: outcome.multipage.pages as u64,
+        }),
     };
     let new = meta.baseline.as_ref().map(|_| {
         counts(
@@ -142,7 +156,8 @@ impl Paths {
     /// else the build file.
     pub fn locate(&self, f: &aieo_core::Finding) -> Option<(String, Option<u32>)> {
         if let Some(src) = &f.source {
-            return Some((src.clone(), None));
+            // a line belongs to the build file when there is one, else to the source
+            return Some((src.clone(), if f.file.is_none() { f.line } else { None }));
         }
         let file = f.file.as_ref()?;
         let dist = self.dist.trim_end_matches('/');

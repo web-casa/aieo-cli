@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://example.com/blog</id>
+    <title>Example Inc Blog</title>
+    <updated>2024-05-01T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://example.com/blog"/>
+    <subtitle>Example Inc Blog</subtitle>
+    <entry>
+        <title type="html"><![CDATA[Hello World]]></title>
+        <id>https://example.com/blog/hello-world</id>
+        <link href="https://example.com/blog/hello-world"/>
+        <updated>2024-05-01T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[The first blog post on the Example Inc fixture site, saying hello to the world.]]></summary>
+        <content type="html"><![CDATA[<p>This example page exists so that an SEO checker can read real framework build output. It has a unique title, a meta description, a canonical link and a single top level heading. The navigation below links every other page of the site, which lets a crawler discover the full set of routes without needing a sitemap file at all.</p>
+<p><a class="" href="https://example.com/">Home</a> | <a class="" href="https://example.com/about">About</a> | <a class="" href="https://example.com/docs/guide/getting-started">Getting started</a> | <a class="" href="https://example.com/blog/hello-world">Hello world</a></p>]]></content>
+    </entry>
+</feed>

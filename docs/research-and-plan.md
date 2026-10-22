@@ -340,7 +340,7 @@ aieo-cli/ (cargo workspace, MIT)
 
 ## 12. 进度（2026-10-22）
 
-### M0 已完成（aieo-v5，分支 `feat/aieo-rules`，工作区 `~/aieo-v5-rules`，未提交）
+### M0 已完成（aieo-v5，分支 `feat/aieo-rules`，工作区 `~/aieo-v5-rules`）
 - 新包 `packages/rules`（`@aieo/rules` 2.0.0，MIT）：
   - `spec/rules.json`：79 条规则，含 F01–F18 / G01–G15 / H01–H04（由现有注册表导出，文本一字不差），以及新增的 T 12 条、C 21 条、D 8 条；
   - `spec/crawlers.json`：21 个爬虫，含官方 IP 列表、反向 DNS、用途分类；
@@ -352,7 +352,7 @@ aieo-cli/ (cargo workspace, MIT)
 - GEOReady 分叉核对：`8296e87..a94e853` 只是等价的线性扫描加固，没有判定变化，结论已写入 `VENDORED_FROM.md`。
 - 5 个 Dockerfile 加入 `packages/rules`；CI 增加 `@aieo/rules` 测试；`export:cli` 脚本把 spec 同步到本仓库，带内容哈希校验。
 
-### 0.1 已完成（本仓库，未提交）
+### 0.1 已完成（本仓库）
 - Rust workspace 共 5 个 crate，40 个测试全部通过，`clippy -D warnings` 干净。
 - **一致性**：34 个用例 × 16 个模块，共 544 项比对，与 TS 引擎完全一致；测试确认能检出不一致。
 - 命令：`init / check / snapshot / diff / export / rules / explain`。
@@ -364,8 +364,29 @@ aieo-cli/ (cargo workspace, MIT)
   - robots.txt 缺失时 sitemap 同样算"未声明"；
   - 首页是 meta refresh 跳转页时给出说明，且相关发现最高只到 warning。
 
+### 0.2 已完成
+- **规格 `@aieo/rules` 2.1.0**：新增 P01–P04（权重 30/30/20/20，独立的 0–100 分层）、K 9 条、T 3 条（JSON-LD），共 95 条；`aieo-bundle/v1` 增加可选的 `readiness.multipage`。TS 侧规格测试和 ai-readiness 490 个测试仍全部通过。
+- **托管规则**：除 `_redirects` / `_headers` 外，读取 `vercel.json`（含 `cleanUrls`、`trailingSlash`）、`netlify.toml`、Next.js `routes-manifest.json`（path-to-regexp 语法）、Nuxt `routeRules` 重定向；每条规则记录所在文件和行号；带请求条件（has/missing、Country=）的规则跳过并在说明里计数。已有文件优先于未强制的改写规则（与 Netlify / Cloudflare Pages 一致）。
+- **服务端构建**：Next.js `.next/`（预渲染 HTML + `public/` + 清单）、Nuxt 和 TanStack Start 的服务端产物，其余路由按"请求时渲染"处理：链接到它们不算断链，HTML 不检查；首页由服务端渲染时首页模块记为 unverified。开发构建（无 `BUILD_ID`）直接报错并提示先 `next build`；中间件存在时给出说明。
+- **预设**：next、nuxt、vue、tanstack、hugo、vitepress、docusaurus（加上 0.1 的 static、astro、starlight 共 10 个），都能回指到源文件；配置读取器支持嵌套键、布尔/数字字面量、方法写法和行号。
+- **规则**：
+  - K：站点来源、base 路径、尾斜杠与实际 URL 不符；重定向循环 / 链 / 目标不存在；响应头规则给 sitemap 页加 noindex；Next 静态导出忽略 redirects/headers/rewrites；客户端渲染空壳应答多个 URL。
+  - P01–P04：从 GEOReady 移植，作用于所有可索引内容页；P01 对声明了 hreflang 的页面不比较 lang，canonical 按"是否解析到本页文件"判断。
+  - JSON-LD：缺 schema.org `@context`；缺 Google 富媒体结果必需属性（Product、BreadcrumbList、Event、Recipe、JobPosting、LocalBusiness、SoftwareApplication、VideoObject、Review、AggregateRating、Dataset、Course、QAPage、DiscussionForumPosting、ProfilePage，2026-10 按官方文档核对）；已停止展示的类型（HowTo、FAQPage、SpecialAnnouncement、ClaimReview）。
+- **示例站快照**：同一个 4 页站点分别用 9 种构建方式真实构建（Next export / server、Nuxt generate / SSR、Vue SPA、TanStack Start、Hugo、VitePress、Docusaurus），去掉资源文件后放在 `fixtures/presets/`，每个都有快照测试。
+- **实站试跑**（只读）：
+  - ubuntu.fan（Next export，1,351 页）：导航里的 `/docs/guide` 在 8 种语言的所有页面上都是断链（目录没有 index 页）；
+  - debian.club（Next export，580 页）：`/en/administration/firewall` 等页面不存在，正文里还有指向 `.md` 文件的链接；
+  - web.casa：SoftwareApplication 缺 `offers.price` 和评分，不具备富媒体结果资格；
+  - eol.wiki、portcyou、almalinux.com.cn：全站使用 FAQPage 标记（Google 已于 2026 年 5 月停止展示）；
+  - 试跑中修掉的误报：多语言站各语言首页 `/ko/` 被判为尾斜杠不符（现在要求同时与实际文件的 URL 形式不符）；SPA 的 `/* /index.html 200` 遮住真实 robots.txt / sitemap（现在已有文件优先）。
+  - 性能：portcyou 11,403 页 3.2 秒（0.1 为 2.5 秒）。
+- Rust 测试共 69 个，`clippy -D warnings` 干净。
+
 ### 与方案的偏差
-- 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 做 K 规则时再评估是否换 oxc。
+- 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。
+- 没有采用 schemaorg-validate（"schemaorg-rs"）：它把 Article 的 headline/image/datePublished/author 当作必需属性，与 Google 文档"Article 没有必需属性"相矛盾，词表也不完整。改为自维护一张按官方文档核对过的必需属性表；Microdata / RDFa 暂不检查。
+- P01–P04 不进 aieo.ee 的 TS 引擎（它们来自 GEOReady 的付费层），规格里标为仅 Rust 实现，没有一致性测试。
 - 证据包里没有 `integrity` 字段：跨语言的规范化哈希不划算，传输时用 gzip + HTTPS。
 - F15 在构建模式下检查首页的 `.md` 副本，不受一致性测试锁定。
 - `T-THIN-CONTENT`、`T-TITLE-LENGTH` 属于启发式规则，默认关闭。
