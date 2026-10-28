@@ -1,0 +1,70 @@
+{
+  "description": "robots.txt declares a sitemap on another host first and the site's own sitemap second; there is no /sitemap.xml.",
+  "expect": {
+    "F02": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F03": {
+      "status": "pass",
+      "ratio": 0.67
+    },
+    "F04": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F05": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F06": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F07": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F08": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F09": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F10": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F11": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F12": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F13": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F14": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F16": {
+      "status": "pass",
+      "ratio": 1,
+      "reason": "index-valid"
+    },
+    "F17": {
+      "status": "pass",
+      "ratio": 1
+    },
+    "F18": {
+      "status": "pass",
+      "ratio": 1
+    }
+  }
+}

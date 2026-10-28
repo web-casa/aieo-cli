@@ -34,7 +34,7 @@ inputs:
     description: Path to write the aieo-bundle/v1 evidence file to; empty to skip
     default: .aieo/bundle.json.gz
   version:
-    description: aieo-cli release to install (e.g. 1.2.1), or "source" to build from this action's ref
+    description: aieo-cli release to install (e.g. 1.3.0), or "source" to build from this action's ref
     default: source
   repository:
     description: Repository the releases are downloaded from

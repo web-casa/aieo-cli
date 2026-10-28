@@ -448,6 +448,11 @@ aieo-cli/ (cargo workspace, MIT)
 - 写文档时发现并修复：`aieo diff` 未配置基线时不读 `.aieo/baseline.json`；`L-ROBOTS-TXT-UNAVAILABLE` 在有 base path 时看错了 robots.txt 位置；`L-404-SPIKE` 把日志开始之前的天数按 0 计入基线；Cloudflare 无法按状态码分组时 401、429 被并入其他区间；`T-MISSING-TITLE` 读到 SVG 的 `title`；meta `name` 大小写；`template` 里的 h1 被计数；`D-PAGE-REMOVED` 不认跨域重定向；`S-INDEXNOW-KEY-INVALID` 忽略 `key_location`；P04 证据文字。
 - 同时发现、留待下一版的 F 模块问题（TS 与 Rust 两边一致，需改规格并升 `@aieo/rules`）：F10 无脚本短页判为部分达标；F04 漏 `googlebot` 写法；站点类型识别把 JSON-LD 类型转小写后再比较，`Product` 等永远匹配不上。
 
+### 1.3：F 模块修正（`@aieo/rules` 4.0.0）
+- TS 与 Rust 两个引擎同步修改，新增 5 个一致性用例（共 39 个）：F03 自有分组对 `/` 未作限制（空 `Disallow:`）算作"已允许"；F04 读取只针对某个爬虫的指令（`googlebot: noindex`、`meta name="googlebot"`）和带空格的参数（`max-snippet: 0`）；F05 取第一条同主机的 `Sitemap:`；F10 没有脚本的首页不再判为部分达标，JSON-LD 不计入脚本体量；F12 比较前解码字符引用；站点类型识别不再因 JSON-LD 类型大小写而失效（影响 F18 文案和 P03）。
+- F04、P03 的判断放宽，按版本策略升 major，`rules-history.json` 记 `changed: ["4.0.0"]`，`aieo diff` 对 3.x 基线把这两条的发现记为 `unknown`。F07、F09、F11、F18、P01 的描述改为与实现一致，F15 的 `modes` 加上 `dist`。
+- 6 个本地真实站点上新旧版本的 F/P 结果完全一致（这些站点不触发上述边界情况）。
+
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。
 - 没有采用 schemaorg-validate（"schemaorg-rs"）：它把 Article 的 headline/image/datePublished/author 当作必需属性，与 Google 文档"Article 没有必需属性"相矛盾，词表也不完整。改为自维护一张按官方文档核对过的必需属性表；Microdata / RDFa 暂不检查。

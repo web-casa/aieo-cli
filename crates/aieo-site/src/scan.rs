@@ -112,11 +112,71 @@ pub fn visible_text_lower(html: &str) -> String {
 }
 
 /// `scriptsLength` — total length of `<script>` elements, in UTF-16 code units.
+/// Script length, JSON-LD blocks left out: they describe the page, it does
+/// not need them to run.
 pub fn scripts_length(html: &str) -> usize {
     element_spans(html, &["script"])
         .into_iter()
+        .filter(|&(s, e)| {
+            let opener = html[s..e]
+                .find('>')
+                .map_or(&html[s..e], |gt| &html[s..s + gt]);
+            !opener.to_ascii_lowercase().contains("application/ld+json")
+        })
         .map(|(s, e)| utf16_len(&html[s..e]))
         .sum()
+}
+
+/// The character references page text commonly carries: numeric ones and
+/// `amp lt gt quot apos nbsp` (any case), so raw-HTML text compares with
+/// JSON-LD strings. Anything else is left as written.
+pub fn decode_basic_entities(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(at) = rest.find('&') {
+        out.push_str(&rest[..at]);
+        let tail = &rest[at + 1..];
+        let decoded = tail.find(';').filter(|&semi| semi <= 8).and_then(|semi| {
+            let r = &tail[..semi];
+            let c = if let Some(hex) = r
+                .strip_prefix(['#'])
+                .and_then(|h| h.strip_prefix(['x', 'X']))
+            {
+                (!hex.is_empty() && hex.len() <= 6 && hex.bytes().all(|b| b.is_ascii_hexdigit()))
+                    .then(|| u32::from_str_radix(hex, 16).ok())
+                    .flatten()
+                    .and_then(|n| (n > 0).then_some(n).and_then(char::from_u32))
+            } else if let Some(dec) = r.strip_prefix('#') {
+                (!dec.is_empty() && dec.len() <= 7 && dec.bytes().all(|b| b.is_ascii_digit()))
+                    .then(|| dec.parse::<u32>().ok())
+                    .flatten()
+                    .and_then(|n| (n > 0).then_some(n).and_then(char::from_u32))
+            } else {
+                match r.to_ascii_lowercase().as_str() {
+                    "amp" => Some('&'),
+                    "lt" => Some('<'),
+                    "gt" => Some('>'),
+                    "quot" => Some('"'),
+                    "apos" => Some('\''),
+                    "nbsp" => Some('\u{a0}'),
+                    _ => None,
+                }
+            };
+            c.map(|c| (c, semi))
+        });
+        match decoded {
+            Some((c, semi)) => {
+                out.push(c);
+                rest = &tail[semi + 1..];
+            }
+            None => {
+                out.push('&');
+                rest = tail;
+            }
+        }
+    }
+    out.push_str(rest);
+    out
 }
 
 /// `stripXmlProlog`: drop declaration, comments and processing instructions
@@ -212,6 +272,16 @@ pub fn starts_like_html(text: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn json_ld_is_not_script_and_references_decode() {
+        let html = r#"<script type="application/ld+json">{"a":1}</script><script>x()</script>"#;
+        assert_eq!(scripts_length(html), "<script>x()</script>".len());
+        assert_eq!(
+            decode_basic_entities("Runner &amp; Co &#38; &#x26; &AMP; &copy; &#0; & x;"),
+            "Runner & Co & & & &copy; &#0; & x;"
+        );
+    }
 
     #[test]
     fn visible_text_strips_scripts_and_tags() {

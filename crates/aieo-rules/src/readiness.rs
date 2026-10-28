@@ -21,8 +21,8 @@ use aieo_site::robots::{
     evaluate_path, parse_robots, rules_for_agent, PathDecision, SCANNER_TOKEN,
 };
 use aieo_site::scan::{
-    is_html_document, is_probably_html, scripts_length, starts_like_html, visible_text_length,
-    visible_text_lower,
+    decode_basic_entities, is_html_document, is_probably_html, scripts_length, starts_like_html,
+    visible_text_length, visible_text_lower,
 };
 use aieo_site::sitemap::parse_sitemap;
 use aieo_site::Site;
@@ -292,14 +292,15 @@ impl Resources {
             let declared = text
                 .split('\n')
                 .map(|l| js_trim(l.split('#').next().unwrap_or_default()).to_string())
-                .find(|l| SITEMAP_LINE.is_match(l));
-            if let Some(line) = declared {
+                .filter(|l| SITEMAP_LINE.is_match(l));
+            for line in declared {
                 let candidate = js_trim(&line[line.find(':').map_or(0, |i| i + 1)..]).to_string();
                 if let Ok(u) = Url::parse(&candidate) {
                     let same_host =
                         u.host_str() == site.origin.host_str() && u.port() == site.origin.port();
                     if matches!(u.scheme(), "http" | "https") && same_host {
                         sitemap_path = u.path().to_string();
+                        break;
                     }
                 }
             }
@@ -370,9 +371,13 @@ static SWAGGER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)swagger").un
 
 pub fn classify_site(site_key: &str, home_html: Option<&str>) -> SiteType {
     let html = home_html.unwrap_or_default();
-    let types = Doc::parse(html)
+    // lower-cased, as the comparisons below are
+    let types: Vec<String> = Doc::parse(html)
         .map(|d| jsonld_types(&d.jsonld_blocks()))
-        .unwrap_or_default();
+        .unwrap_or_default()
+        .iter()
+        .map(|t| js_lower(t))
+        .collect();
     let has = |t: &str| types.iter().any(|x| x == t);
     let text = js_lower(js_prefix(html, 200_000));
     let head = js_prefix(&text, 50_000);
@@ -384,7 +389,6 @@ pub fn classify_site(site_key: &str, home_html: Option<&str>) -> SiteType {
         (SiteType::Ecommerce, 0),
     ];
     let mut add = |t: SiteType, n: i32| scores.iter_mut().find(|(k, _)| *k == t).unwrap().1 += n;
-    // the TypeScript classifier compares lower-case type names (sic)
     if has("product") || has("productcollection") || has("store") {
         add(SiteType::Ecommerce, 3);
     }
@@ -527,10 +531,11 @@ fn f03(ctx: &Ctx) -> ModuleResult {
             .iter()
             .position(|c| *c == cat)
             .expect("known F03 category");
+        // a group of its own that decides nothing for "/" (an empty
+        // `Disallow:`, sub-path rules only) allows it: a declaration too
         match evaluate_path(Some(&group), "/") {
-            PathDecision::Unspecified => continue,
             PathDecision::Disallow => blocked[i].push(token),
-            PathDecision::Allow => allowed[i].push(token),
+            PathDecision::Allow | PathDecision::Unspecified => allowed[i].push(token),
         }
         mentioned[i] = true;
     }
@@ -575,10 +580,29 @@ fn f03(ctx: &Ctx) -> ModuleResult {
     res("F03", Status::Pass, declared as f64 / 3.0, evidence, None)
 }
 
+/// Robots directives, lower-cased, `name: value` as `name:value`, with a
+/// leading crawler name (`googlebot: noindex`) dropped.
 fn directive_set(value: &str) -> Vec<String> {
+    const PARAMETERS: [&str; 4] = [
+        "max-snippet",
+        "max-image-preview",
+        "max-video-preview",
+        "unavailable_after",
+    ];
     js_lower(value)
         .split(',')
-        .map(|d| js_trim(d).to_string())
+        .map(|d| {
+            let mut t = js_trim(d);
+            if let Some(colon) = t.find(':').filter(|&c| c > 0) {
+                if !PARAMETERS.contains(&js_trim(&t[..colon])) {
+                    t = js_trim(&t[colon + 1..]);
+                }
+            }
+            match t.find(':').filter(|&c| c > 0) {
+                Some(c) => format!("{}:{}", js_trim(&t[..c]), js_trim(&t[c + 1..])),
+                None => t.to_string(),
+            }
+        })
         .collect()
 }
 
@@ -588,9 +612,13 @@ fn f04(ctx: &Ctx) -> ModuleResult {
     };
     let mut evidence = Vec::new();
     let mut directives: Vec<String> = Vec::new();
-    if let Some(meta) = Doc::parse(html).and_then(|d| d.meta_content("robots")) {
-        evidence.push(ev("meta robots", "meta robots", meta.clone()));
-        directives.extend(directive_set(&meta));
+    let doc = Doc::parse(html);
+    for name in ["robots", "googlebot", "bingbot"] {
+        if let Some(meta) = doc.as_ref().and_then(|d| d.meta_content(name)) {
+            let label = format!("meta {name}");
+            evidence.push(ev(&label, &label, meta.clone()));
+            directives.extend(directive_set(&meta));
+        }
     }
     if let Some(x) = ctx.r.home_x_robots.as_deref().filter(|x| !x.is_empty()) {
         evidence.push(ev("X-Robots-Tag", "X-Robots-Tag", x));
@@ -877,12 +905,11 @@ fn f10(ctx: &Ctx) -> ModuleResult {
     };
     let text_len = visible_text_length(html);
     let script_len = scripts_length(html);
+    // no scripts: nothing depends on JavaScript
     let ratio = if script_len > 0 {
         text_len as f64 / script_len as f64
-    } else if text_len > 500 {
-        1.0
     } else {
-        0.0
+        1.0
     };
     let evidence = vec![
         ev(
@@ -983,7 +1010,8 @@ fn f12(ctx: &Ctx) -> ModuleResult {
         return info("F12", vec![], None);
     }
     let title = js_lower(&doc.title());
-    let body = visible_text_lower(html);
+    // character references decoded: `Runner &amp; Co` is "Runner & Co"
+    let body = decode_basic_entities(&visible_text_lower(html));
     let mut names: Vec<String> = Vec::new();
     for block in &blocks {
         let Value::Object(obj) = block else { continue };
@@ -1639,4 +1667,30 @@ pub fn run(site: &Site) -> ReadinessReport {
 /// Ratio as `ScanFindings.modules` reports it (2 dp).
 pub fn rounded_ratio(r: f64) -> f64 {
     (r.clamp(0.0, 1.0) * 100.0).round() / 100.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn site_type_reads_json_ld_types_as_written() {
+        let home = |t: &str| {
+            format!(
+                r#"<!doctype html><html><head><title>Shop</title><script type="application/ld+json">{{"@context":"https://schema.org","@type":"{t}","name":"X"}}</script></head><body><h1>X</h1></body></html>"#
+            )
+        };
+        assert_eq!(
+            classify_site("shop.example", Some(&home("Product"))),
+            SiteType::Ecommerce
+        );
+        assert_eq!(
+            classify_site("example.com", Some(&home("TechArticle"))),
+            SiteType::Docs
+        );
+        assert_eq!(
+            classify_site("example.com", Some(&home("Thing"))),
+            SiteType::Content
+        );
+    }
 }

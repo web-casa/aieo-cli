@@ -1,6 +1,6 @@
 {
   "$schema": "./rules.schema.json",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "rules": [
     {
       "id": "F01",
@@ -100,8 +100,8 @@
         "zh": "索引与摘要限制"
       },
       "description": {
-        "en": "noindex/nosnippet-style directives on the homepage",
-        "zh": "首页的 noindex/nosnippet 类指令"
+        "en": "noindex/nosnippet-style directives on the homepage, including crawler-specific ones",
+        "zh": "首页的 noindex/nosnippet 类指令（含只针对某个爬虫的）"
       },
       "tier": {
         "fail": "error",
@@ -190,8 +190,8 @@
         "zh": "页面语言与 hreflang"
       },
       "description": {
-        "en": "html lang declared; hreflang alternates when multilingual",
-        "zh": "声明 html lang；多语言时提供 hreflang"
+        "en": "html lang declared on the homepage",
+        "zh": "首页声明 html lang"
       },
       "tier": {
         "fail": "notice",
@@ -250,8 +250,8 @@
         "zh": "页面语义与可导航结构"
       },
       "description": {
-        "en": "Single h1, heading hierarchy, nav landmark, internal links",
-        "zh": "唯一 h1、标题层级、nav 标记、站内链接"
+        "en": "Single h1, at least two subheadings, nav landmark, internal links",
+        "zh": "唯一 h1、至少两个小标题、nav 标记、站内链接"
       },
       "tier": {
         "fail": "notice",
@@ -308,8 +308,8 @@
         "zh": "结构化数据解析"
       },
       "description": {
-        "en": "Parseable JSON-LD with schema.org types",
-        "zh": "可解析的 JSON-LD 与 schema.org 类型"
+        "en": "Parseable JSON-LD on the homepage",
+        "zh": "首页有可解析的 JSON-LD"
       },
       "tier": {
         "fail": null,
@@ -434,7 +434,8 @@
         "partial": null
       },
       "modes": [
-        "url"
+        "url",
+        "dist"
       ],
       "evidence_level": "heuristic",
       "implementations": [
@@ -513,8 +514,8 @@
         "zh": "Agent、API 与服务能力发现"
       },
       "description": {
-        "en": "OpenAPI / ai-plugin / MCP-style surfaces (site-type aware)",
-        "zh": "OpenAPI / ai-plugin 等（按站点类型判定）"
+        "en": "OpenAPI document and ai-plugin manifest at well-known paths",
+        "zh": "约定路径上的 OpenAPI 文档与 ai-plugin 清单"
       },
       "tier": {
         "fail": "notice",
@@ -1070,8 +1071,8 @@
         "zh": "多页技术与元数据一致性"
       },
       "description": {
-        "en": "Unique titles/descriptions, canonicals and language across sampled pages",
-        "zh": "抽样页面的唯一标题/描述、canonical 与语言一致性"
+        "en": "Unique titles/descriptions, canonicals and language across all content pages",
+        "zh": "所有内容页面的唯一标题/描述、canonical 与语言一致性"
       },
       "tier": {
         "fail": "notice",

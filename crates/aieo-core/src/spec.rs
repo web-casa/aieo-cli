@@ -255,5 +255,8 @@ mod tests {
         assert!(!s.rule_unchanged_since("C-HREFLANG-INVALID-CODE", "2.4.1"));
         assert!(s.rule_unchanged_since("C-HREFLANG-INVALID-CODE", "3.0.0"));
         assert!(s.rule_unchanged_since("C-LINK-BROKEN", "2.0.0"));
+        // widened in 4.0.0: crawler-scoped robots directives
+        assert!(!s.rule_unchanged_since("F04", "3.0.0"));
+        assert!(s.rule_unchanged_since("F04", "4.0.0"));
     }
 }

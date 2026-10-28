@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+Sitemap: https://cdn.example.net/sitemap.xml
+Sitemap: {{origin}}/sitemap-main.xml
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: OAI-SearchBot
+Allow: /
