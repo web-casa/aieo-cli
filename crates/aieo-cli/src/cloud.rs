@@ -196,6 +196,30 @@ pub struct IndexNowArgs {
     endpoint: Option<String>,
 }
 
+/// The IndexNow key file as this build would serve it: where it is
+/// announced (`key_location`, else `/<key>.txt` at the host root) and what
+/// the build holds there. None when that location is outside the build
+/// (another host, or above the base path), so the build cannot tell.
+pub fn key_file_in_build(
+    site: &aieo_site::site::Site,
+    key: &str,
+    key_location: Option<&str>,
+) -> Option<(String, Option<String>)> {
+    let url = indexnow::key_url(&site.origin, key, key_location).ok()?;
+    let path = url.path().to_string();
+    let under_base = site.base_path.is_empty()
+        || path == site.base_path
+        || path.starts_with(&format!("{}/", site.base_path));
+    if !site.is_own_url(&url) || !under_base {
+        return None;
+    }
+    let held = site
+        .resolve_exact(&path)
+        .and_then(|f| site.read_bytes(f))
+        .map(|b| String::from_utf8_lossy(&b).trim().to_string());
+    Some((path, held))
+}
+
 fn key_of(args: &IndexNowArgs, config: &Config) -> Result<String> {
     args.key.clone().or(config.indexnow.key.clone()).context(
         "no IndexNow key: run `aieo indexnow keygen --write` and set [indexnow] key in aieo.toml",
@@ -228,19 +252,15 @@ pub fn cmd_indexnow(cmd: IndexNowCommand) -> Result<u8> {
             let key = key_of(&args, &config)?;
             let run = run_check(&args.target, None, Vec::new(), "check")?;
             let site = &run.prepared.site;
-            let path = format!("{}/{key}.txt", site.base_path);
-            let built = site
-                .resolve_exact(&path)
-                .and_then(|f| site.read_bytes(f))
-                .map(|b| String::from_utf8_lossy(&b).trim().to_string());
             let url =
                 indexnow::key_url(&site.origin, &key, config.indexnow.key_location.as_deref())?;
-            match built.as_deref() {
-                Some(k) if k == key => eprintln!("build: {path} holds the key"),
-                Some(_) => eprintln!("build: {path} holds a different key"),
-                None => {
+            match key_file_in_build(site, &key, config.indexnow.key_location.as_deref()) {
+                Some((path, Some(k))) if k == key => eprintln!("build: {path} holds the key"),
+                Some((path, Some(_))) => eprintln!("build: {path} holds a different key"),
+                Some((path, None)) => {
                     eprintln!("build: no {path} (run `aieo indexnow keygen --write`, then build)")
                 }
+                None => eprintln!("build: {url} is outside this build; not checked"),
             }
             let live = indexnow::verify(&Ureq::default(), &url, &key)?;
             match &live {

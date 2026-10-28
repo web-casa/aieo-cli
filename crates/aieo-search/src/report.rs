@@ -421,7 +421,7 @@ pub fn findings(store: &SearchStore, p: &Params, e: &mut Emitter) -> Result<()> 
             vec![ev(
                 "Build",
                 "构建产物",
-                "the configured key's /<key>.txt is not in the build",
+                "the key file (key_location, else /<key>.txt) is missing from the build or holds another key",
             )],
             None,
         );

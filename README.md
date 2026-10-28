@@ -250,7 +250,7 @@ function) so that links into rewritten paths are not reported as broken.
 - run: npm run build
 - uses: web-casa/aieo-cli@v1       # composite action, see action.yml
   with:
-    version: 1.2.0                 # prebuilt binary; the default "source" builds with cargo
+    version: 1.2.1                 # prebuilt binary; the default "source" builds with cargo
     command: diff                  # or check
     upload-sarif: "true"           # GitHub code scanning (security-events: write)
     # push: "true"                 # upload the bundle to aieo.ee (aieo-api-key: ${{ secrets.AIEO_API_KEY }})

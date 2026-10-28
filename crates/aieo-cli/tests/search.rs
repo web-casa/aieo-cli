@@ -109,6 +109,21 @@ fn bing_ai_import_reaches_the_search_section() {
         .unwrap()
         .iter()
         .any(|f| f["rule"] == "S-INDEXNOW-KEY-INVALID"));
+    // served where key_location says: no finding
+    write(p, "dist/keys/indexnow.txt", "0123456789abcdef\n");
+    write(
+        p,
+        "aieo.toml",
+        "site = \"https://t.example\"\n\n[indexnow]\nkey = \"0123456789abcdef\"\nkey_location = \"/keys/indexnow.txt\"\n",
+    );
+    let (code, out, err) = aieo(p, &["search", "report", "--json"], cfg.path());
+    assert_eq!(code, 0, "{err}");
+    let bundle: serde_json::Value = serde_json::from_str(&out).unwrap();
+    assert!(bundle["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|f| f["rule"] != "S-INDEXNOW-KEY-INVALID"));
     write(
         p,
         "ai-bad.csv",

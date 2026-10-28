@@ -258,8 +258,12 @@ fn reports_regressions_and_new_findings_against_a_baseline() {
     // next build: the orphan page is deleted, the guide turns noindex, the
     // dup-b gets its own title, and one new broken link appears
     let mut next = files();
-    next.retain(|(rel, _)| *rel != "orphan-linked/index.html");
+    // ... and the lonely page moves to another host
+    next.retain(|(rel, _)| *rel != "orphan-linked/index.html" && *rel != "lonely/index.html");
     for (rel, text) in next.iter_mut() {
+        if *rel == "_redirects" {
+            text.push_str("/lonely/ https://blog.other.example/lonely/ 301\n");
+        }
         if *rel == "dup-b/index.html" {
             *text = text.replace("Same title", "Other title");
         }
@@ -288,6 +292,10 @@ fn reports_regressions_and_new_findings_against_a_baseline() {
     assert!(
         h.contains(&("D-PAGE-REMOVED".into(), "/orphan-linked/".into())),
         "{h:#?}"
+    );
+    assert!(
+        !h.contains(&("D-PAGE-REMOVED".into(), "/lonely/".into())),
+        "redirected to another host: {h:#?}"
     );
     assert!(
         h.contains(&("D-PAGE-NOINDEXED".into(), "/guide/".into())),

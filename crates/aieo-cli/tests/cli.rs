@@ -114,6 +114,17 @@ fn passes_a_clean_build_and_fails_a_regression() {
 }
 
 #[test]
+fn diff_finds_the_snapshot_without_a_config() {
+    let d = project();
+    let p = d.path();
+    let (code, _, err) = aieo(p, &["snapshot", "--site", "https://t.example"]);
+    assert_eq!(code, 0, "{err}");
+    assert!(!p.join("aieo.toml").exists());
+    let (code, out, err) = aieo(p, &["diff", "--site", "https://t.example"]);
+    assert_eq!(code, 0, "{out}{err}");
+}
+
+#[test]
 fn incomplete_evidence_and_usage_errors_exit_2() {
     let d = tempfile::tempdir().unwrap();
     let p = d.path();
@@ -153,7 +164,7 @@ fn incomplete_evidence_and_usage_errors_exit_2() {
     // diff without a baseline
     let (code, _, err) = aieo(p, &["diff", "--site", "https://t.example"]);
     assert_eq!(code, 2);
-    assert!(err.contains("baseline"), "{err}");
+    assert!(err.contains("aieo snapshot"), "{err}");
 
     // a bad aieo.toml is an error, not a silent default
     write(p, "aieo.toml", "[rules]\n\"NOPE\" = \"off\"\n");

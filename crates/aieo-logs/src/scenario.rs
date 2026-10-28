@@ -44,6 +44,8 @@ fn log() -> String {
             "-",
             GOOGLE_UA,
         );
+        // one stale URL a day: the typical day has a crawler 404
+        s += &line("66.249.64.5", day, 32, "/docs/old/", 404, "-", GOOGLE_UA);
         // ... and a section robots.txt disallows
         s += &line("66.249.64.5", day, 31, "/private/x", 200, "-", GOOGLE_UA);
         // OAI-SearchBot (verified) reaches one page
@@ -180,7 +182,7 @@ fn ingests_classifies_and_reports() {
         .find(|b| b.bot.map(|c| c.id.as_str()) == Some("googlebot"))
         .unwrap();
     assert_eq!(google.verification.mismatch, 10);
-    assert_eq!(google.verification.verified, 10 * 14 + 30);
+    assert_eq!(google.verification.verified, 10 * 15 + 30);
     let cov = |actor: &str| {
         report
             .logs
@@ -197,6 +199,10 @@ fn ingests_classifies_and_reports() {
     assert_eq!(report.never_crawled["search_index"].len(), 11);
     assert_eq!(report.logs.anomalies.len(), 1);
     assert_eq!(report.logs.anomalies[0].day, "2026-10-08");
+    assert_eq!(
+        report.logs.anomalies[0].baseline, 1.0,
+        "the 20 days before the logs begin are not zero-404 days"
+    );
     assert!(
         report
             .logs
@@ -243,5 +249,29 @@ fn ingests_classifies_and_reports() {
         .find(|p| p.finding.rule == "L-BOT-BLOCKED")
         .unwrap();
     assert!(blocked.finding.evidence[0].detail.starts_with("GPTBot"));
+
+    // a build under a base path: crawlers still fetch /robots.txt at the root
+    let docs = Inventory {
+        indexable: inventory.indexable.clone(),
+        robots: Some(parse_robots("User-agent: *\nDisallow: /private/\n")),
+        base_path: "/docs".into(),
+    };
+    let params = Params {
+        since_days: 30,
+        host: None,
+        origin: Some("https://docs.example"),
+        inventory: Some(&docs),
+    };
+    let mut e = Emitter::new(&settings);
+    findings(&report, &params, &store, &mut e).unwrap();
+    let robots = e
+        .out
+        .iter()
+        .find(|p| p.finding.rule == "L-ROBOTS-TXT-UNAVAILABLE")
+        .expect("robots.txt 503 at the root");
+    assert_eq!(
+        robots.finding.url.as_deref(),
+        Some("https://docs.example/robots.txt")
+    );
     let _ = Format::Combined;
 }

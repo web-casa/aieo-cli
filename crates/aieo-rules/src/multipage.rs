@@ -365,8 +365,8 @@ fn p04(pages: &[&PageFacts]) -> ModuleResult {
     }
     let mut evidence = vec![
         ev(
-            "Pages with entity markup",
-            "含实体标记的页面",
+            "Pages with entity JSON-LD",
+            "含实体 JSON-LD 的页面",
             format!("{with_entity}/{}", pages.len()),
         ),
         ev(

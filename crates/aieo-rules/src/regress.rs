@@ -55,9 +55,11 @@ pub fn run(
     for old in baseline.inventory.pages.iter().filter(|p| p.indexable) {
         let path = path_of(&old.url);
         let Some(new) = now.get(&path) else {
-            // gone from the inventory: fine if a redirect (or another file) still answers
+            // gone from the inventory: fine if a redirect (or another file)
+            // still answers, or a redirect moves it to another host
             let url = Url::parse(&site.url_for(&path)).expect("site URL");
-            if !site.follow(&url).answers() {
+            let followed = site.follow(&url);
+            if !(followed.answers() || followed.foreign && !followed.hops.is_empty()) {
                 e.emit(
                     "D-PAGE-REMOVED",
                     None,

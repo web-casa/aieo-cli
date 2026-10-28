@@ -196,13 +196,20 @@ fn rows_of(v: &Value, class: Option<(u16, u16)>) -> Result<Vec<Row>> {
     Ok(out)
 }
 
-/// Status ranges queried when status cannot be grouped on; 403 apart, as it is how WAFs refuse crawlers.
-const CLASSES: [(u16, u16); 6] = [
+/// Status ranges queried when status cannot be grouped on. The codes the
+/// rules tell apart get a range of their own: 401, 403 and 429 are how a WAF
+/// or rate limit refuses a crawler, 404 is a missing page.
+const CLASSES: [(u16, u16); 11] = [
     (200, 300),
     (300, 400),
-    (400, 403),
+    (400, 401),
+    (401, 402),
+    (402, 403),
     (403, 404),
-    (404, 500),
+    (404, 405),
+    (405, 429),
+    (429, 430),
+    (430, 500),
     (500, 600),
 ];
 
@@ -285,9 +292,8 @@ fn status_of(row: &Row) -> u16 {
     row.status.unwrap_or(match row.status_class {
         Some(200) => 200,
         Some(300) => 301,
-        Some(400) => 400,
-        Some(403) => 403,
-        Some(404) => 404,
+        Some(c @ (401 | 402 | 403 | 404 | 429)) => c,
+        Some(400 | 405 | 430) => 400,
         _ => 500,
     })
 }
@@ -422,11 +428,18 @@ mod tests {
             if q.contains("dimensions { userAgent clientRequestPath clientRequestHTTPHost datetimeHour edgeResponseStatus }") {
                 return Ok(json!({"data":null,"errors":[{"message":"unknown field \"edgeResponseStatus\""}]}));
             }
-            // only the 403 class has rows: GPTBot blocked twice in one hour, OAI-SearchBot fine
+            // the 403 class has rows: GPTBot blocked twice in one hour, OAI-SearchBot fine
             if q.contains("edgeResponseStatus_geq: 403") {
                 return Ok(
                     json!({"data":{"viewer":{"zones":[{"httpRequestsAdaptiveGroups":[
                     {"count":7,"dimensions":{"userAgent":"Mozilla/5.0 (compatible; GPTBot/1.2)","clientRequestPath":"/docs/","clientRequestHTTPHost":"e.com","datetimeHour":"2026-10-21T10:00:00Z"}}]}]}}}),
+                );
+            }
+            // ... and ClaudeBot rate-limited: 429 keeps its own code
+            if q.contains("edgeResponseStatus_geq: 429,") {
+                return Ok(
+                    json!({"data":{"viewer":{"zones":[{"httpRequestsAdaptiveGroups":[
+                    {"count":4,"dimensions":{"userAgent":"Mozilla/5.0 (compatible; ClaudeBot/1.0)","clientRequestPath":"/docs/","clientRequestHTTPHost":"e.com","datetimeHour":"2026-10-21T10:00:00Z"}}]}]}}}),
                 );
             }
             if q.contains("edgeResponseStatus_geq: 200") {
@@ -440,7 +453,7 @@ mod tests {
         let mut store = Store::in_memory().unwrap();
         let now = OffsetDateTime::parse("2026-10-22T00:30:00Z", &Rfc3339).unwrap();
         let r = pull(&mut store, &post, "zone1", 2, now).unwrap();
-        assert_eq!((r.rows, r.requests), (2, 10));
+        assert_eq!((r.rows, r.requests), (3, 14));
         assert!(r.notes.iter().any(|n| n.contains("per status class")));
         let weight: i64 = store
             .conn
@@ -451,13 +464,22 @@ mod tests {
             )
             .unwrap();
         assert_eq!(weight, 7);
+        let limited: i64 = store
+            .conn
+            .query_row(
+                "SELECT SUM(weight) FROM hits WHERE bot = 'claudebot' AND status = 429",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(limited, 4, "429 is not folded into 404");
         // pulling again replaces the same rows instead of adding to them
         pull(&mut store, &post, "zone1", 2, now).unwrap();
         let total: i64 = store
             .conn
             .query_row("SELECT SUM(weight) FROM hits", [], |r| r.get(0))
             .unwrap();
-        assert_eq!(total, 10);
+        assert_eq!(total, 14);
         let q = calls.borrow();
         assert!(q.iter().any(|q| q.contains("userAgent_like: \"%GPTBot%\"")));
         assert!(q

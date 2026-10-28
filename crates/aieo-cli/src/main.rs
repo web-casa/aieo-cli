@@ -461,16 +461,17 @@ fn load_baseline(
     project: &Path,
     required: bool,
 ) -> Result<Option<Bundle>> {
-    let candidate = path.cloned().or_else(|| config.map(|c| project.join(c)));
+    // `aieo diff` falls back to where `aieo snapshot` writes by default
+    let candidate = path
+        .cloned()
+        .or_else(|| config.map(|c| project.join(c)))
+        .or_else(|| required.then(|| project.join(".aieo/baseline.json")));
     match candidate {
         Some(p) if p.is_file() => Ok(Some(Bundle::read(&p)?)),
         Some(p) if path.is_some() || required => bail!(
             "baseline {} not found — create it with `aieo snapshot`",
             p.display()
         ),
-        _ if required => {
-            bail!("no baseline: pass --baseline or set [check] baseline in {CONFIG_FILE}")
-        }
         _ => Ok(None),
     }
 }

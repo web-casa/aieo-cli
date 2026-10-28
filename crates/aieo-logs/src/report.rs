@@ -304,7 +304,8 @@ pub fn build(store: &Store, p: &Params) -> Result<Option<Report>> {
             .collect::<Result<_, _>>()?;
         if days >= 7 {
             let mut all: Vec<u64> = Vec::new();
-            let start = OffsetDateTime::from_unix_timestamp(from)?.date();
+            // the typical day counts only days the logs cover
+            let start = OffsetDateTime::from_unix_timestamp(first)?.date();
             let end = OffsetDateTime::from_unix_timestamp(to)?.date();
             let mut d = start;
             while d <= end {
@@ -460,7 +461,8 @@ pub fn findings(report: &Report, p: &Params, store: &Store, e: &mut Emitter) -> 
     let (from, to) = (report.from, report.to);
     let host = p.host.map(str::to_ascii_lowercase);
     let base = p.inventory.map(|i| i.base_path.clone()).unwrap_or_default();
-    let robots_path = format!("{base}/robots.txt");
+    // crawlers fetch robots.txt at the host root, whatever the base path
+    let robots_path = "/robots.txt".to_string();
     let bad_robots: Vec<(u16, u64, String)> = {
         let mut stmt = store.conn.prepare(&format!(
             "SELECT status, SUM(weight), GROUP_CONCAT(DISTINCT bot) FROM hits
@@ -523,7 +525,7 @@ pub fn findings(report: &Report, p: &Params, store: &Store, e: &mut Emitter) -> 
         let mut by_bot: BTreeMap<String, (u64, Vec<String>)> = BTreeMap::new();
         for (bot, path, n) in rows {
             let Some(c) = crawler(&bot) else { continue };
-            if path == robots_path {
+            if path == robots_path || path == format!("{base}/robots.txt") {
                 continue;
             }
             let group = rules_for_agent(robots, &c.robots_token);
@@ -594,7 +596,7 @@ pub fn findings(report: &Report, p: &Params, store: &Store, e: &mut Emitter) -> 
                         "By crawler",
                         "按爬虫",
                         if per_bot.is_empty() {
-                            "no AI search crawler requests at all".into()
+                            "no AI search crawler reached an indexable page".into()
                         } else {
                             per_bot.join(", ")
                         },

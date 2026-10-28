@@ -176,11 +176,11 @@ fn extract(site: &Site, project: Option<&Project>, rel: &str) -> PageFacts {
         facts.noindex_via = Some(format!("X-Robots-Tag: {x}"));
     }
     let Some(doc) = doc else { return facts };
-    facts.title = doc.title();
-    facts.description = doc.meta_content("description");
+    facts.title = doc.html_title();
+    facts.description = doc.meta_content_ci("description");
     facts.lang = doc.html_lang();
     for name in ["robots", "googlebot"] {
-        if let Some(meta) = doc.meta_content(name).filter(|m| says_noindex(m)) {
+        if let Some(meta) = doc.meta_content_ci(name).filter(|m| says_noindex(m)) {
             if !facts.noindex {
                 facts.noindex = true;
                 facts.noindex_via = Some(format!("<meta name=\"{name}\" content=\"{meta}\">"));
@@ -201,7 +201,7 @@ fn extract(site: &Site, project: Option<&Project>, rel: &str) -> PageFacts {
             href,
         })
         .collect();
-    facts.h1_count = doc.headings().0.len();
+    facts.h1_count = doc.rendered_h1s().len();
     facts.images_missing_alt = doc.images_missing_alt();
     facts.jsonld_failures = doc.jsonld_failures();
     let blocks = doc.jsonld_blocks();

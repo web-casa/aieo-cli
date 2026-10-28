@@ -32,7 +32,7 @@ steps:
   # … checkout, install, build …
   - uses: web-casa/aieo-cli@v1
     with:
-      version: 1.2.0              # prebuilt binary; the default builds from source
+      version: 1.2.1              # prebuilt binary; the default builds from source
       command: diff               # "check" when there is no baseline
       upload-sarif: "true"
 ```
@@ -45,7 +45,7 @@ adding others.
 
 ```yaml
 include:
-  - remote: https://raw.githubusercontent.com/web-casa/aieo-cli/v1.2.0/ci/gitlab-ci.yml
+  - remote: https://raw.githubusercontent.com/web-casa/aieo-cli/v1.2.1/ci/gitlab-ci.yml
 
 aieo:
   extends: .aieo

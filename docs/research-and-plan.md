@@ -443,6 +443,11 @@ aieo-cli/ (cargo workspace, MIT)
 - 写规则文档时发现并修复 7 处检测问题：Hugo 配置键大小写导致缺行号；Next.js `metadataBase` 指向布局文件；`_redirects` 文件遮蔽（循环、链、目标缺失）；`! X-Robots-Tag`；`C-ROBOTS-BLOCKS-ALL` 按全站判断；`C-ROBOTS-AI-SEARCH-BLOCKED` 也报"只留首页"；hreflang 按 ISO 代码表校验。
 - `@aieo/rules` 3.0.0（判断放宽属于 major）：`rules-history.json` 新增 `changed`；`aieo diff` 把基线之后新增或放宽的规则的发现记为 `unknown`，升级仍不会让 `diff` 失败。
 
+### 1.2.1：其余规则页与随之发现的问题
+- aieo.ee 规则页补齐 F、P、T、D、L、S 六类 56 条，CLI 运行的 87 条规则都有中英文页面；规则参考侧边栏按类别分组，计分模块显示权重。
+- 写文档时发现并修复：`aieo diff` 未配置基线时不读 `.aieo/baseline.json`；`L-ROBOTS-TXT-UNAVAILABLE` 在有 base path 时看错了 robots.txt 位置；`L-404-SPIKE` 把日志开始之前的天数按 0 计入基线；Cloudflare 无法按状态码分组时 401、429 被并入其他区间；`T-MISSING-TITLE` 读到 SVG 的 `title`；meta `name` 大小写；`template` 里的 h1 被计数；`D-PAGE-REMOVED` 不认跨域重定向；`S-INDEXNOW-KEY-INVALID` 忽略 `key_location`；P04 证据文字。
+- 同时发现、留待下一版的 F 模块问题（TS 与 Rust 两边一致，需改规格并升 `@aieo/rules`）：F10 无脚本短页判为部分达标；F04 漏 `googlebot` 写法；站点类型识别把 JSON-LD 类型转小写后再比较，`Product` 等永远匹配不上。
+
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。
 - 没有采用 schemaorg-validate（"schemaorg-rs"）：它把 Article 的 headline/image/datePublished/author 当作必需属性，与 Google 文档"Article 没有必需属性"相矛盾，词表也不完整。改为自维护一张按官方文档核对过的必需属性表；Microdata / RDFa 暂不检查。

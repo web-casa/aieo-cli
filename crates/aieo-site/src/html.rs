@@ -76,6 +76,42 @@ impl Doc {
             .unwrap_or_default()
     }
 
+    /// The document's title: the first HTML `title`, not an SVG one.
+    /// (`title()` mirrors aieo.ee's query, which takes any `title`.)
+    pub fn html_title(&self) -> String {
+        self.html
+            .select(&TITLE)
+            .find(|e| &*e.value().name.ns == "http://www.w3.org/1999/xhtml")
+            .map(|e| js_trim(&text_of(e)).to_string())
+            .unwrap_or_default()
+    }
+
+    /// `meta_content` with the name matched ASCII case-insensitively, as
+    /// HTML does (`name="Description"`).
+    pub fn meta_content_ci(&self, name: &str) -> Option<String> {
+        let by_name = Selector::parse(&format!(r#"meta[name="{name}" i]"#)).ok()?;
+        let by_prop = Selector::parse(&format!(r#"meta[property="{name}"]"#)).ok()?;
+        let el = self.first(&by_name).or_else(|| self.first(&by_prop))?;
+        let content = js_trim(el.value().attr("content")?);
+        (!content.is_empty()).then(|| content.to_string())
+    }
+
+    /// Non-empty h1 texts a browser renders: none from inside a `template`.
+    pub fn rendered_h1s(&self) -> Vec<String> {
+        self.html
+            .select(&H1)
+            .filter(|e| {
+                !e.ancestors().any(|a| {
+                    a.value()
+                        .as_element()
+                        .is_some_and(|el| el.name() == "template")
+                })
+            })
+            .map(|e| js_trim(&text_of(e)).to_string())
+            .filter(|t| !t.is_empty())
+            .collect()
+    }
+
     /// `metaContent`: `meta[name=X]`, else `meta[property=X]`; trimmed, non-empty.
     pub fn meta_content(&self, name: &str) -> Option<String> {
         let by_name = Selector::parse(&format!(r#"meta[name="{name}"]"#)).ok()?;
@@ -297,6 +333,20 @@ mod tests {
 <script type="application/ld+json">{bad</script>
 </head><body><nav><a href="/a">A</a><a href="https://other.test/">O</a><a href="#top">t</a><a href="mailto:x@y">m</a></nav>
 <h1>One</h1><h1> </h1><h2>s</h2><img src=a><img src=b alt=""></body></html>"##;
+
+    #[test]
+    fn page_queries_follow_html() {
+        let d = Doc::parse(
+            r#"<!doctype html><html><head><meta name="Description" content="d"></head><body>
+<svg><title>Icon</title></svg><h1>Real</h1><template><h1>Later</h1></template></body></html>"#,
+        )
+        .unwrap();
+        assert_eq!(d.title(), "Icon", "aieo.ee's query");
+        assert_eq!(d.html_title(), "");
+        assert_eq!(d.meta_content("description"), None, "aieo.ee's query");
+        assert_eq!(d.meta_content_ci("description").as_deref(), Some("d"));
+        assert_eq!(d.rendered_h1s(), vec!["Real"]);
+    }
 
     #[test]
     fn mirrors_the_typescript_queries() {

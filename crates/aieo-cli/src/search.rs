@@ -418,10 +418,9 @@ pub fn build(target: &Target, days: i64) -> Result<Option<(Search, Vec<Finding>,
         })
         .collect();
     let site = &run.prepared.site;
-    let key_in_build = config.indexnow.key.as_ref().map(|k| {
-        site.resolve_exact(&format!("{}/{k}.txt", site.base_path))
-            .and_then(|f| site.read_bytes(f))
-            .is_some_and(|b| String::from_utf8_lossy(&b).trim() == k)
+    let key_in_build = config.indexnow.key.as_ref().and_then(|k| {
+        crate::cloud::key_file_in_build(site, k, config.indexnow.key_location.as_deref())
+            .map(|(_, held)| held.as_deref() == Some(k.as_str()))
     });
     // the property recorded with the data (no network needed to report)
     let property: Option<String> = config.search.google_property.clone().or_else(|| {
