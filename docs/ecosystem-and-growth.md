@@ -87,11 +87,12 @@
 aieo.ee 侧：
 
 - `https://aieo.ee/.well-known/skills/index.json`：Hermes 等会自动发现。
+  > 进度（2026-10-28，aieo.ee 分支 `feat/agent-skills`，未部署）：同时提供 Agent Skills Discovery v0.2.0 的 `/.well-known/agent-skills/index.json`（`type: skill-md`、`url`、`sha256` digest）和旧版 v0.1.0 的 `/.well-known/skills/index.json`。5 个 SKILL.md 复制在 aieo.ee 的 `apps/site/agent-skills/`；本仓库技能有改动的版本发布后，在 aieo.ee 运行 `node apps/site/scripts/sync-agent-skills.mjs <aieo-cli 路径>` 同步（`--check` 只报差异）。
 - `https://aieo.ee/llms.txt` 中加入 CLI 文档与 Skill 入口。
 
 `release.yml` 增加：构建 MCPB 和 WorkBuddy 包作为 release 附件；`server.json` 的版本号随 tag 更新并发布到 MCP Registry。
 
-> 进度（1.1）：Claude Code / Codex 插件市场、5 个技能、MCPB、`server.json` 已完成；Registry 名称改用 `io.github.web-casa/aieo`（GitHub OIDC，无需 DNS），由仓库变量控制是否发布。Cursor、Glama、WorkBuddy 包与 `/.well-known/skills/index.json` 尚未做。
+> 进度（1.1）：Claude Code / Codex 插件市场、5 个技能、MCPB、`server.json` 已完成；Registry 名称改用 `io.github.web-casa/aieo`（GitHub OIDC，无需 DNS），由仓库变量控制是否发布。Cursor、Glama、WorkBuddy 包尚未做；`/.well-known/skills/index.json` 见上（待 aieo.ee 部署）。
 
 ### 3.2 技能拆分：一个技能只做一件事
 
