@@ -109,6 +109,8 @@ aieo.ee 侧：
 ### 3.3 aieo.ee 远程 MCP 升级
 
 1. **OAuth 2.1**（保留现有 Bearer Key 给脚本用）：支持动态客户端注册，满足 claude.ai 目录、ChatGPT/Codex、Smithery URL 上架要求；scope 默认只读。
+
+   > 进度（2026-10-28，aieo-v5-rules 分支 `feat/mcp-oauth`，未提交、未部署）：已实现，方案见 aieo.ee 仓库 `docs/plan-remote-mcp-oauth.md`。授权服务器是 web 上的 better-auth `@better-auth/oauth-provider` 1.7.6，issuer 为 `https://app.aieo.ee/api/auth`；`/mcp` 返回 401 时附带 `resource_metadata`，并提供 RFC 8414 / RFC 9728 元数据、开放的动态注册、PKCE S256 和 `resource` 参数。令牌为不透明令牌，以哈希存储，前缀 `aieoat_` / `aieort_`，只读，每次授权都要选组织（只有一个组织时跳过）。每次请求都会重新检查成员关系、账号封禁、客户端停用和资源绑定。控制台 MCP 页可查看和断开已连接的应用。尚未做：CIMD（等 better-auth 1.8）、浏览器端客户端需要的 CORS，以及在真实客户端（claude.ai、ChatGPT、Claude Code、Cursor）上的验收。
 2. **新工具**：
    - `get_inside_view`：读取 CLI 推送的证据包（构建页面、爬虫日、AI 引荐）。主方案 5.5 已预留。
    - 把**未订阅时可用**的三项能力（技术审计、GSC/Bing 导入、AI 可读性检查）暴露为工具。登录即可用，作为办公类 Agent 里的入口。

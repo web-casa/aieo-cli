@@ -453,6 +453,9 @@ aieo-cli/ (cargo workspace, MIT)
 - F04、P03 的判断放宽，按版本策略升 major，`rules-history.json` 记 `changed: ["4.0.0"]`，`aieo diff` 对 3.x 基线把这两条的发现记为 `unknown`。F07、F09、F11、F18、P01 的描述改为与实现一致，F15 的 `modes` 加上 `dist`。
 - 6 个本地真实站点上新旧版本的 F/P 结果完全一致（这些站点不触发上述边界情况）。
 
+### aieo.ee 远程 MCP 的 OAuth（增长方案 G1）
+- 在 aieo-v5-rules 的 `feat/mcp-oauth` 分支实现（未提交、未部署），方案见该仓库的 `docs/plan-remote-mcp-oauth.md`，进度记录见 [`ecosystem-and-growth.md`](ecosystem-and-growth.md) §3.3。CLI 本身没有改动；`aieo push` 继续使用 API Key。
+
 ### 与方案的偏差
 - 框架配置先用一个字面量词法扫描器读取，没有引入 oxc。只读 `site / base / outDir / trailingSlash` 的字面量，计算出来的值一律视为未知。0.2 扩展了这个扫描器（嵌套键、布尔、方法、行号），仍未引入 oxc：现有 9 种框架的示例配置都能读出需要的值。
 - 没有采用 schemaorg-validate（"schemaorg-rs"）：它把 Article 的 headline/image/datePublished/author 当作必需属性，与 Google 文档"Article 没有必需属性"相矛盾，词表也不完整。改为自维护一张按官方文档核对过的必需属性表；Microdata / RDFa 暂不检查。
